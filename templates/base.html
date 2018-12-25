@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    {% block head %}
+    <meta charset="utf-8" />
+    <title>{% block title %}{% endblock %}: Analysis Portfolio</title>
+    <link rel="stylesheet"
+      href="{{ url_for('static', filename='base.css') }}">
+    {% endblock %}
+  </head>
+  <body>
+    {% block body %}
+    <!-- ==== START PAGE CONTAINER ==== -->
+    <div class="container">
+      <header role="banner">
+        <nav role="navigation">
+          {% block navigation %}
+          <div class="nav">
+            <a href="/">Home</a>
+            <a href="gameplay.html">Gameplay Analysis</a>
+            <a href="music.html">Music Analysis</a>
+            <a href="exercise.html">Exercise Analysis</a>
+          </div>
+          {% endblock %}
+        </nav>
+      </header>
+    </div>
+    {% endblock %}
+  </body>
+  {% block main %}{% endblock %}
+  <footer role="contentinfo">
+    {% block footer %}
+    <p>
+      Brandon Knox is a service operations analytics &
+      reporting senior specialist for a finance company.
+      He is completing a degree in Computer Science from the
+      <cite>University of Illinois at Springfield</cite>, and
+      will graduate in May 2019.
+    </p>
+    <p><small>&copy; 2019 Brandon Knox</small></p>
+    {% endblock %}
+  </footer>
+</html>
