@@ -1,0 +1,48 @@
+/*** Nav Bar ***/
+.nav {
+	background-color: DarkSlateGray; /* nav bar color */
+	overflow: hidden; /* Contain links and clip any overflow */
+}
+
+/*** Nav Bar Links ***/
+.nav a{
+	float: left;	/* Stack links left*/
+	padding: .5em 1em;
+	text-decoration: none;  /* remove link underline */
+	color: White;
+  font-family: sans-serif;
+}
+
+/*** Nav Bar Links when Mouse Hovers ***/
+.nav a:hover{
+	background-color: lightgray;
+  color: DarkSlateGray;
+}
+
+main {
+	background-color: DarkCyan;
+	padding: 1em;
+	color: white;
+	font-family: sans-serif;
+}
+
+footer {
+  background-color: DarkSlateGray;
+  padding: 1em;
+  color: White;
+  font-family: sans-serif;
+}
+
+/*** RESPONSIVE STYLING ***/
+@media screen and (max-width: 800px) {
+	.nav a{
+		float:none;
+		font-size: 1.5em;
+		display: block;
+		width: 800px;
+	}
+
+  body {
+		font-size: ;
+	}
+}
