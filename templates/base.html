@@ -6,6 +6,8 @@
     <title>{% block title %}{% endblock %}: Analysis Portfolio</title>
     <link rel="stylesheet"
       href="{{ url_for('static', filename='base.css') }}">
+    <link rel="stylesheet" href="http://cdn.pydata.org/bokeh/release/bokeh-0.12.5.min.css" type="text/css" />
+    <script type="text/javascript" src="http://cdn.pydata.org/bokeh/release/bokeh-0.12.5.min.js"></script>
     {% endblock %}
   </head>
   <body>
@@ -17,9 +19,9 @@
           {% block navigation %}
           <div class="nav">
             <a href="/">Home</a>
-            <a href="gameplay.html">Gameplay Analysis</a>
-            <a href="music.html">Music Analysis</a>
-            <a href="exercise.html">Exercise Analysis</a>
+            <a href="/gameplay/">Gameplay Analysis</a>
+            <a href="/music/">Music Analysis</a>
+            <a href="/exercise/">Exercise Analysis</a>
           </div>
           {% endblock %}
         </nav>
@@ -31,8 +33,8 @@
   <footer role="contentinfo">
     {% block footer %}
     <p>
-      Brandon Knox is a service operations analytics &
-      reporting senior specialist for a finance company.
+      Brandon Knox is a Service Operations Analytics &
+      Reporting Senior Specialist for a finance company.
       He is completing a degree in Computer Science from the
       <cite>University of Illinois at Springfield</cite>, and
       will graduate in May 2019.

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-
+<!-- Bokeh includes-->
 {% block title %}Gameplay{% endblock %}
 
 <!-- ==== START MAIN CONTENT ====-->
@@ -12,6 +12,13 @@
       patterns in my habits playing videogames.
     </p>
   </article>
+  <!-- ==== START GRAPHS ====-->
+  {% for plot in plots %}
+    {% for part in plot %}
+      {{part | safe}}
+    {% endfor %}
+  {% endfor %}
+  <!-- end graphs -->
 </main>
 {% endblock %}
 <!-- end main content -->
