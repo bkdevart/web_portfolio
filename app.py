@@ -4,6 +4,7 @@ from flask import Flask, render_template
 from bokeh.plotting import figure
 from bokeh.models import ColumnDataSource
 from bokeh.embed import components
+# from bokeh.palettes import Spectral6
 import pandas as pd
 
 app = Flask(__name__)
@@ -102,11 +103,16 @@ def game_of_the_week(source_data, num_weeks=16):
     source = ColumnDataSource(graph)
     y_range = list(set(graph['title']))
 
-    plot = figure(plot_height=300, sizing_mode='scale_width', y_range=y_range)
+    plot = figure(plot_height=300,
+                  sizing_mode='scale_width',
+                  y_range=y_range,
+                  title='Hours Per Week')
     plot.hbar(y='title',
               source=source,
               right='hours_played',
-              height=.5)
+              height=.5,
+              line_color='#8e8d7d',
+              fill_color='#8e8d7d')
     most_recent_week = weekly_top_games['week_start'].dt.date.iloc[-1]
     curr_top_game = weekly_top_games['title'].iloc[-1]
     # TODO: convert this line to a string, figure out how display in HTML

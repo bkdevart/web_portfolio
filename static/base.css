@@ -11,6 +11,7 @@
 	text-decoration: none;  /* remove link underline */
 	color: #8e8d7d;
   font-family: sans-serif;
+	font-weight: bold;
 }
 
 /*** Nav Bar Links when Mouse Hovers ***/
@@ -31,6 +32,10 @@ footer {
   padding: 1em;
   color: #8e8d7d;
   font-family: sans-serif;
+}
+
+a {
+	color: #8e8d7d
 }
 
 /*** RESPONSIVE STYLING ***/
