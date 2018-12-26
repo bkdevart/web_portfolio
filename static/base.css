@@ -1,0 +1,48 @@
+/*** Nav Bar ***/
+.nav {
+	background-color: #a0e2ff; /* nav bar color */
+	overflow: hidden; /* Contain links and clip any overflow */
+}
+
+/*** Nav Bar Links ***/
+.nav a{
+	float: left;	/* Stack links left*/
+	padding: .5em 1em;
+	text-decoration: none;  /* remove link underline */
+	color: #9fa0a0;
+  font-family: sans-serif;
+}
+
+/*** Nav Bar Links when Mouse Hovers ***/
+.nav a:hover{
+	background-color: #9fa0a0;
+  color: #ffffff;
+}
+
+main {
+	background-color: #9fa0a0;
+	padding: 1em;
+	color: #ffffff;
+	font-family: sans-serif;
+}
+
+footer {
+  background-color: #a0e2ff;
+  padding: 1em;
+  color: #9fa0a0;
+  font-family: sans-serif;
+}
+
+/*** RESPONSIVE STYLING ***/
+@media screen and (max-width: 600px) {
+	.nav a{
+		float:none;
+		font-size: 1.5em;
+		display: block;
+		width: 600px;
+	}
+
+  body {
+		font-size: ;
+	}
+}

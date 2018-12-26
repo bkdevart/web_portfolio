@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    {% block head %}
+    <meta charset="utf-8" />
+    <title>{% block title %}{% endblock %}: Analysis Portfolio</title>
+    <link rel="stylesheet"
+      href="{{ url_for('static', filename='base.css') }}">
+    <link rel="stylesheet" href="http://cdn.pydata.org/bokeh/release/bokeh-0.13.0.min.css" type="text/css" />
+    <script type="text/javascript" src="http://cdn.pydata.org/bokeh/release/bokeh-0.13.0.min.js"></script>
+    {% endblock %}
+  </head>
+  <body>
+    {% block body %}
+    <!-- ==== START PAGE CONTAINER ==== -->
+    <div class="container">
+      <header role="banner">
+        <nav role="navigation">
+          {% block navigation %}
+          <div class="nav">
+            <a href="/">Home</a>
+            <a href="/gameplay/">Gameplay Analysis</a>
+            <a href="/music/">Music Analysis</a>
+            <a href="/exercise/">Exercise Analysis</a>
+          </div>
+          {% endblock %}
+        </nav>
+      </header>
+    </div>
+    {% endblock %}
+  </body>
+  {% block main %}{% endblock %}
+  <footer role="contentinfo">
+    {% block footer %}
+    <p>
+      Brandon Knox is a Service Operations Analytics &
+      Reporting Senior Specialist for a finance company.
+      He is completing a degree in Computer Science from the
+      <cite>University of Illinois at Springfield</cite>, and
+      will graduate in May 2019.  Code for this site is located at
+      <a href="https://github.com/bkdevart/web_portfolio">Brandon's GitHub</a>.
+    </p>
+    <p><small>&copy; 2019 Brandon Knox</small></p>
+    {% endblock %}
+  </footer>
+</html>

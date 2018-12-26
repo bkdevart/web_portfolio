@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+<!-- Bokeh includes-->
+{% block title %}Gameplay{% endblock %}
+
+<!-- ==== START MAIN CONTENT ====-->
+{% block main %}
+<main role="main">
+  <article class="gameplay">
+    <h1 id="portfolio-goal">Gameplay</h1>
+    <p>
+      Here's some analytics I've created exploring the
+      patterns in my habits playing videogames.
+    </p>
+    <!-- ==== START GRAPHS ====-->
+    {% for plot in plots %}
+      {% for part in plot %}
+        {{part | safe}}
+      {% endfor %}
+    {% endfor %}
+    <!-- end graphs -->
+  </article>
+</main>
+{% endblock %}
+<!-- end main content -->
