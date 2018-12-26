@@ -1,6 +1,6 @@
 /*** Nav Bar ***/
 .nav {
-	background-color: DarkSlateGray; /* nav bar color */
+	background-color: #a0e2ff; /* nav bar color */
 	overflow: hidden; /* Contain links and clip any overflow */
 }
 
@@ -9,37 +9,37 @@
 	float: left;	/* Stack links left*/
 	padding: .5em 1em;
 	text-decoration: none;  /* remove link underline */
-	color: White;
+	color: #9fa0a0;
   font-family: sans-serif;
 }
 
 /*** Nav Bar Links when Mouse Hovers ***/
 .nav a:hover{
-	background-color: lightgray;
-  color: DarkSlateGray;
+	background-color: #9fa0a0;
+  color: #ffffff;
 }
 
 main {
-	background-color: DarkCyan;
+	background-color: #9fa0a0;
 	padding: 1em;
-	color: white;
+	color: #ffffff;
 	font-family: sans-serif;
 }
 
 footer {
-  background-color: DarkSlateGray;
+  background-color: #a0e2ff;
   padding: 1em;
-  color: White;
+  color: #9fa0a0;
   font-family: sans-serif;
 }
 
 /*** RESPONSIVE STYLING ***/
-@media screen and (max-width: 800px) {
+@media screen and (max-width: 600px) {
 	.nav a{
 		float:none;
 		font-size: 1.5em;
 		display: block;
-		width: 800px;
+		width: 600px;
 	}
 
   body {
