@@ -1,9 +1,8 @@
 from datetime import datetime, date
 from flask import Flask, render_template
 from bokeh.plotting import figure
-from bokeh.models import ColumnDataSource, Plot
+from bokeh.models import ColumnDataSource
 from bokeh.embed import components
-from bokeh.models.glyphs import HBar
 import pandas as pd
 
 app = Flask(__name__)
@@ -25,8 +24,6 @@ def index():
 
 @app.route('/gameplay/')
 def gameplay():
-    # source_data, complete = init_data()
-    # weekly_top_games = game_of_the_week(source_data)
     plots = []
     plots.append(init_data())
     return render_template('gameplay.html', plots=plots)
@@ -58,8 +55,6 @@ def init_data():
     # ---- Generate Graphs ----
     script, div = components(game_of_the_week(source))
     return script, div
-    # return source, complete
-    # return text_string
 
 
 def game_of_the_week(source_data, num_weeks=16):
@@ -98,10 +93,8 @@ def game_of_the_week(source_data, num_weeks=16):
                                on=['week_start', 'hours_played'],
                                how='left'))
 
-    # graph = (weekly_top_games[['title', 'hours_played']].set_index('title').tail(num_weeks))
     graph = weekly_top_games[['title', 'hours_played']].tail(num_weeks)
-    # TODO: figure out how to plot graph df with bokeh
-    # plot = graph.plot(kind='barh')
+    # plot graph df with bokeh
     source = ColumnDataSource(graph)
     y_range = list(set(graph['title']))
 
@@ -113,9 +106,7 @@ def game_of_the_week(source_data, num_weeks=16):
     most_recent_week = weekly_top_games['week_start'].dt.date.iloc[-1]
     curr_top_game = weekly_top_games['title'].iloc[-1]
     # TODO: convert this line to a string, figure out how display in HTML
-    top_game = f'Top Game for week of {most_recent_week}: {curr_top_game}'
-    # return weekly_top_games
-    # return top_game
+    # top_game = f'Top Game for week of {most_recent_week}: {curr_top_game}'
     return plot
 
 @app.route('/music/')
