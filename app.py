@@ -1,3 +1,4 @@
+import os
 from datetime import datetime, date
 from flask import Flask, render_template
 from bokeh.plotting import figure
@@ -33,9 +34,12 @@ def init_data():
     '''
     Initializes data, returning two dataframes - source and complete
     '''
-    source = pd.read_csv('input/game_log.csv',
+    THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
+    game_log = os.path.join(THIS_FOLDER, 'input/game_log.csv')
+    completed = os.path.join(THIS_FOLDER, 'input/completed.csv')
+    source = pd.read_csv(game_log,
                          parse_dates=['date', 'time_played'])
-    complete = pd.read_csv('input/completed.csv',
+    complete = pd.read_csv(completed,
                            parse_dates=['date_completed'])
 
     # perform initial calculations
