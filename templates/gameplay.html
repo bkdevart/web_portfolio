@@ -13,10 +13,13 @@
     </p>
     <!-- ==== START GRAPHS ====-->
     {% for plot in plots %}
+    <div class="col">
       {% for part in plot %}
-        {{part | safe}}
+        <div class="row">{{part | safe}}</div>
       {% endfor %}
+    </div>
     {% endfor %}
+
     <!-- end graphs -->
   </article>
 </main>
