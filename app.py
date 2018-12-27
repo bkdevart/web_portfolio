@@ -1,10 +1,12 @@
 import os
 from datetime import datetime, date
+from math import pi
 from flask import Flask, render_template
 from bokeh.plotting import figure
 from bokeh.models import ColumnDataSource
 from bokeh.embed import components
-# from bokeh.palettes import Spectral6
+from bokeh.palettes import RdBu
+from bokeh.transform import cumsum
 import pandas as pd
 
 app = Flask(__name__)
@@ -27,7 +29,17 @@ def index():
 @app.route('/gameplay/')
 def gameplay():
     plots = []
-    plots.append(init_data())
+    # grab source data
+    source, complete = init_data()
+
+    # add weekly hours for most played game plot
+    plot = game_of_the_week(source)
+    plots.append(components(plot))
+
+    # add weekly hours distribution pie graph
+    plot = weekly_hours_snapshot(source)
+    plots.append(components(plot))
+
     return render_template('gameplay.html', plots=plots)
 
 
@@ -57,9 +69,7 @@ def init_data():
                             (source['date'].dt.dayofweek, unit='d'))
     source['month'] = source['date'].values.astype('datetime64[M]')
 
-    # ---- Generate Graphs ----
-    script, div = components(game_of_the_week(source))
-    return script, div
+    return source, complete
 
 
 def game_of_the_week(source_data, num_weeks=16):
@@ -118,6 +128,55 @@ def game_of_the_week(source_data, num_weeks=16):
     # TODO: convert this line to a string, figure out how display in HTML
     # top_game = f'Top Game for week of {most_recent_week}: {curr_top_game}'
     return plot
+
+
+def weekly_hours_snapshot(source):
+    '''
+    Displays pie chart of time played per game in curretn week
+    '''
+    df = __weekly_hours_by_game(source)
+    # filter to current week
+    current_week = df['week_start'].max()
+    df = (df[df['week_start'] == current_week]
+          [['title', 'hours_played']])
+    # some calculations to orientate the pie wedges
+    df['angle'] = (df['hours_played']/
+                   df['hours_played'].sum() * 2*pi)
+    df['color'] = RdBu[len(df['hours_played'])]
+    source = ColumnDataSource(df)
+    p = figure(plot_height=300,
+               sizing_mode='scale_width',
+               title='Weekly Hours Distribution')
+    p.wedge(x=0, y=1, radius=0.4, line_color='white',
+            start_angle=cumsum('angle', include_zero=True),
+            end_angle=cumsum('angle'), legend='title',
+            fill_color='color', source=source)
+    return p
+
+
+def __weekly_hours_by_game(source):
+    '''
+    Shows total hours played for each game for each week
+
+    Returns
+    -------
+    weekly_game_hours : DataFrame
+        week_start : datetime64[ns]
+            Week-start date (Monday-based) for title played
+        title : object (str)
+            Title of game
+        hours_played : float64[ns]
+            Total hours spent playing title for the week
+    '''
+    weekly_game_hours = (source.groupby(['week_start',
+                                         'title'],
+                                        as_index=False)
+                         [['hours_played']].sum().sort_values(
+                                                  ['week_start',
+                                                   'hours_played'],
+                                                  ascending=False))
+    return weekly_game_hours
+
 
 @app.route('/music/')
 def music():
