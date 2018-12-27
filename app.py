@@ -1,5 +1,5 @@
 import os
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from math import pi
 from flask import Flask, render_template
 from bokeh.plotting import figure
@@ -8,6 +8,7 @@ from bokeh.embed import components
 from bokeh.palettes import RdBu
 from bokeh.transform import cumsum
 import pandas as pd
+import numpy as np
 
 app = Flask(__name__)
 
@@ -38,6 +39,10 @@ def gameplay():
 
     # add weekly hours distribution pie graph
     plot = weekly_hours_snapshot(source)
+    plots.append(components(plot))
+
+    # TODO: add top 10 streaks graph
+    plot = check_streaks(source)
     plots.append(components(plot))
 
     return render_template('gameplay.html', plots=plots)
@@ -176,6 +181,111 @@ def __weekly_hours_by_game(source):
                                                    'hours_played'],
                                                   ascending=False))
     return weekly_game_hours
+
+
+def check_streaks(source, top_games=10):
+    '''
+    Evaluates which games have been played at least two consecutive days
+    in a row.  Prints any games that are currently being played in a streak
+    and graphs the longest streaks along with the days for each
+    title.
+
+    Parameters
+    ----------
+    top_games : int
+        Number of games to display in graph.  Graph starts from the game
+        with the most consecutive days.
+
+    Returns
+    -------
+    max_streak : DataFrame
+        Superset of data used in graph displaying all games that have been
+        played in a streak, along with the number of consecutive days.
+        Fields below.
+
+        index : object (str)
+            Date game was played
+        days : float64
+            Days played in a continuous streak
+
+    '''
+    df = get_streaks(source)
+    # calculate current streak (streaks with yesterday's date)
+    # filter down to results with yesterday's date
+    yesterday = pd.Timestamp(date.today() - timedelta(1))
+    current_streak = (df[(df['next_day'] == yesterday)][['title',
+                                                         'streak_num']])
+    # turn the title(s) into a list to print
+    # if current_streak empty, put 'None' in list
+    # TODO: adapt this to string and find out how to display
+    '''
+    print('\nCurrent streak(s):')
+    if len(current_streak) == 0:
+        print('None')
+    else:
+        current_streak['days'] = current_streak['streak_num'] + 1
+        current_streak = (current_streak[['title', 'days']]
+                          .set_index('title'))
+        print(current_streak)
+    '''
+    # take max streak_sum, grouped by title, store in new object
+    max_streak = df.groupby('title', as_index=False)['streak_num'].max()
+    max_streak['days'] = max_streak['streak_num'] + 1
+    max_streak = max_streak[['title', 'days']].sort_values(['days'],
+                                                           ascending=False)
+    # graph data
+    # TODO: adapt this for bokeh, return plot
+    graph = max_streak[['title', 'days']].head(top_games)
+    # plot graph df with bokeh
+    source = ColumnDataSource(graph)
+    y_range = list(set(graph['title']))
+    title = 'Top ' + str(top_games) + ' Streaks'
+
+    p = figure(plot_height=300,
+               sizing_mode='scale_width',
+               y_range=y_range,
+               title=title)
+    p.hbar(y='title',
+           source=source,
+           right='days',
+           height=.5,
+           line_color='#8e8d7d',
+           fill_color='#8e8d7d')
+    '''
+    max_streak = max_streak.reset_index().set_index('title')[['days']]
+    chart_title = 'Top ' + str(top_games) + ' Streaks'
+    max_streak.head(top_games).plot.barh(title=chart_title)
+    '''
+    return p
+
+
+def get_streaks(source):
+    # data needed: game title and date
+    df = source[['title', 'date']]
+    # order by game title first, then date
+    df = df.sort_values(['title', 'date'])
+    # use groupby with title, shift date down by one to get next day played
+    df['next_day'] = df.groupby('title')['date'].shift(-1)
+    # fill nat values in next_day with date values (for subtraction)
+    df['next_day'] = df['next_day'].fillna(df['date'])
+    # subtract number of days between date and next_day, store in column
+    df['consecutive'] = (df['next_day'] - df['date'])
+    # if column value = 1 day, streak = true (new column)
+    df = df[(df['consecutive'] == timedelta(days=1))]
+    # need to group streaks
+    # test: date - date.shift(-1) = 1 day, and same for next_day
+    df['group'] = (((df['next_day'] - df['next_day'].shift(1))
+                    == timedelta(days=1)) &
+                   ((df['date'] - df['date'].shift(1))
+                    == timedelta(days=1)))
+    # false represents the beginning of each streak, so it equals 1
+    df['streak_num'] = np.where(df['group'] == False, 1, np.nan)
+    # forward fill streak_num to complete streak count
+    for col in df.columns:
+        g = df['streak_num'].notnull().cumsum()
+        df['streak_num'] = (df['streak_num'].fillna(method='ffill') +
+                            df['streak_num'].groupby(g).cumcount())
+    return df
 
 
 @app.route('/music/')
