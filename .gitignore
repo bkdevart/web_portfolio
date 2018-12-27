@@ -41,3 +41,7 @@ Thumbs.db
 __pycache__
 __pycache__/*
 app.pyc
+
+# Files used to test #
+######################
+data_test.py
