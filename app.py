@@ -53,6 +53,10 @@ def gameplay():
     plot = bar_graph_top(source)
     plots.append(components(plot))
 
+    # add top game time pie graph
+    plot = pie_graph_top(source)
+    plots.append(components(plot))
+
     return render_template('gameplay.html', plots=plots)
 
 
@@ -364,7 +368,7 @@ def bar_graph_top(source, num_games=10):
     game_rank = graph['hours_played']
     tick_names = graph['title']
 
-    #TODO: adapt add bokeh instructions, return plot
+    # add bokeh instructions, return plot
     source = ColumnDataSource(graph)
     y_range = list(set(graph['title']))
     title = 'Rank by Game Time'
@@ -452,6 +456,39 @@ def __current_top(source_df, rank_num):
     '''
     top = source_df[source_df['rank'] <= rank_num]
     return top
+
+
+def pie_graph_top(source, num_games=10):
+    '''
+    This creates a pie plot of the number of games specified
+        - Focuses on overall time spent
+
+    Parameters
+    ----------
+    num_games : int
+        This determines the number of games to display, starting from the
+        top.  Defaults to 10.
+    '''
+    # pop out the first slice (assuming 10 items)
+    # explode = (.1, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+    # plt.pie(game_rank, labels=tick_names, explode=explode)
+    graph = __current_top(__agg_total_time_played(source), num_games)
+    game_rank = graph['hours_played']
+    tick_names = graph['title']
+    title = 'Top ' + str(num_games) + ' Distro'
+    # add graph using bokeh, return plot
+    graph['angle'] = (graph['hours_played']/
+                      graph['hours_played'].sum() * 2*pi)
+    graph['color'] = RdBu[len(graph['hours_played'])]
+    source = ColumnDataSource(graph)
+    p = figure(plot_height=300,
+               sizing_mode='scale_width',
+               title=title)
+    p.wedge(x=0, y=1, radius=0.4, line_color='white',
+            start_angle=cumsum('angle', include_zero=True),
+            end_angle=cumsum('angle'), legend='title',
+            fill_color='color', source=source)
+    return p
 
 
 @app.route('/music/')
