@@ -41,8 +41,12 @@ def gameplay():
     plot = weekly_hours_snapshot(source)
     plots.append(components(plot))
 
-    # TODO: add top 10 streaks graph
+    # add top 10 streaks graph
     plot = check_streaks(source)
+    plots.append(components(plot))
+
+    # add weekly hours graph
+    plot = line_weekly_hours(source)
     plots.append(components(plot))
 
     return render_template('gameplay.html', plots=plots)
@@ -234,7 +238,7 @@ def check_streaks(source, top_games=10):
     max_streak = max_streak[['title', 'days']].sort_values(['days'],
                                                            ascending=False)
     # graph data
-    # TODO: adapt this for bokeh, return plot
+    # adapt this for bokeh, return plot
     graph = max_streak[['title', 'days']].head(top_games)
     # plot graph df with bokeh
     source = ColumnDataSource(graph)
@@ -287,6 +291,60 @@ def get_streaks(source):
                             df['streak_num'].groupby(g).cumcount())
     return df
 
+
+def line_weekly_hours(source):
+    '''
+    Graphs total weekly hours on a line graph
+    '''
+    graph = __agg_week(source)[['week_start', 'hours_played',
+                                'avg_hrs_per_day']]
+    graph = graph.set_index('week_start')
+    # TODO: add this as bokeh graph, return plot
+    # source = ColumnDataSource(graph)
+    title = 'Weekly Hours'
+    num_lines = len(graph.columns)
+    my_palette = ['#8e8d7d', '#acd1e0']
+
+    p = figure(plot_height=300,
+               sizing_mode='scale_width',
+               title=title,
+               x_axis_type='datetime')
+    p.multi_line(xs=[graph.index.values]*num_lines,
+                 ys=[graph[name].values for name in graph],
+                 line_color=my_palette,
+                 line_width=2)
+    return p
+
+def __agg_week(source):
+    '''
+    Creates a DataFame that rolls up weekly totals.  Does not include game
+    title information.
+
+    Returns
+    -------
+    weekly_hour_days : DataFrame
+        week_start : datetime64[ns]
+            The date of the first Sunday of each week
+        hours_played : float64
+            Total hours played for the week
+        days_sampled : int64
+            Number of days containing data for the week
+        avg_hrs_per_day : float64
+            hours_played / days_sampled
+    '''
+    weekly_hour = (source.groupby('week_start', as_index=False)
+                   .sum()[['week_start', 'hours_played']])
+    weekly_days = (source.groupby('week_start').nunique()
+                   [['date']].reset_index())
+    weekly_hour_days = pd.merge(weekly_hour, weekly_days, on='week_start')
+    weekly_hour_days.columns = ['week_start',
+                                'hours_played',
+                                'days_sampled']
+    weekly_hour_days['avg_hrs_per_day'] = (weekly_hour_days['hours_played']
+                                           /
+                                           weekly_hour_days['days_sampled']
+                                           )
+    return weekly_hour_days
 
 @app.route('/music/')
 def music():

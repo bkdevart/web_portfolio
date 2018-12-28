@@ -27,14 +27,14 @@
 
 main {
 	background-color: #8e8d7d;
-	padding: 1em;
+	padding: 1em 3em;
 	color: #ffffff;
 	font-family: sans-serif;
 }
 
 footer {
   background-color: #acd1e0;
-  padding: 1em;
+  padding: 1em ;
   color: #8e8d7d;
   font-family: sans-serif;
 }
