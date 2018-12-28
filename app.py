@@ -49,6 +49,10 @@ def gameplay():
     plot = line_weekly_hours(source)
     plots.append(components(plot))
 
+    # add rank by game time graph
+    plot = bar_graph_top(source)
+    plots.append(components(plot))
+
     return render_template('gameplay.html', plots=plots)
 
 
@@ -255,11 +259,6 @@ def check_streaks(source, top_games=10):
            height=.5,
            line_color='#8e8d7d',
            fill_color='#8e8d7d')
-    '''
-    max_streak = max_streak.reset_index().set_index('title')[['days']]
-    chart_title = 'Top ' + str(top_games) + ' Streaks'
-    max_streak.head(top_games).plot.barh(title=chart_title)
-    '''
     return p
 
 
@@ -299,8 +298,7 @@ def line_weekly_hours(source):
     graph = __agg_week(source)[['week_start', 'hours_played',
                                 'avg_hrs_per_day']]
     graph = graph.set_index('week_start')
-    # TODO: add this as bokeh graph, return plot
-    # source = ColumnDataSource(graph)
+    # add this as bokeh graph, return plot
     title = 'Weekly Hours'
     num_lines = len(graph.columns)
     my_palette = ['#8e8d7d', '#acd1e0']
@@ -345,6 +343,116 @@ def __agg_week(source):
                                            weekly_hour_days['days_sampled']
                                            )
     return weekly_hour_days
+
+
+def bar_graph_top(source, num_games=10):
+    '''
+    This function will create a horizontal bar chart representing total
+    time spent playing individual games.
+        - Time is ranked with longest at the bottom
+
+    Parameters
+    ----------
+    num_games : int
+        This determines the number of games to display, starting from the
+        top.  Defaults to 10.
+    '''
+    # set data
+    graph = __current_top(__agg_total_time_played(source), num_games)
+
+    n_groups = graph['title'].count()
+    game_rank = graph['hours_played']
+    tick_names = graph['title']
+
+    #TODO: adapt add bokeh instructions, return plot
+    source = ColumnDataSource(graph)
+    y_range = list(set(graph['title']))
+    title = 'Rank by Game Time'
+
+    p = figure(plot_height=300,
+               sizing_mode='scale_width',
+               y_range=y_range,
+               title=title)
+    p.hbar(y='title',
+           source=source,
+           right='hours_played',
+           height=.5,
+           line_color='#8e8d7d',
+           fill_color='#8e8d7d')
+    return p
+    '''
+    # create plots
+    fig, ax = plt.subplots()
+    index = np.arange(n_groups)
+    bar_width = 0.35
+    opacity = 0.8
+
+    plt.barh(index + bar_width, game_rank, bar_width,
+             alpha=opacity,
+             color='g',
+             label='Game')
+
+    plt.ylabel('Game')
+    plt.xlabel('Hours Played')
+    plt.title('Rank by Game Time')
+    plt.yticks(index + bar_width, tick_names)
+
+    plt.tight_layout()
+    plt.savefig((self._config['output'] + 'games.png'),
+                dpi=300)
+    plt.show()
+    '''
+
+
+def __agg_total_time_played(source):
+    '''
+    Sums up total time played by game, and ranks totals
+
+    Returns
+    -------
+    time_played : DataFrame
+        title : object (str)
+            Title of game
+        minutes_played : int64
+            Total minutes spent playing the game since data tracking began
+        hours_played : float64
+            Total hours spent playing the game since data tracking began
+        rank : float64
+            Rank of game based on time spent playing, with 1 representing
+            the most time spent
+    '''
+    time_played = pd.DataFrame(source.groupby('title',
+                                              as_index=False)
+                               [['title',
+                                 'minutes_played',
+                                 'hours_played']].sum())
+    time_played.sort_values('minutes_played', ascending=False,
+                            inplace=True)
+    time_played['rank'] = (time_played['minutes_played']
+                           .rank(method='dense', ascending=False))
+    return time_played
+
+
+def __current_top(source_df, rank_num):
+    '''
+    This generates data for the specified number of top ranked games
+        - Primarily used to limit data points in graphs
+
+    Returns
+    -------
+    top : DataFrame
+        title : object (str)
+            Title of game
+        minutes_played : int64
+            Total minutes spent playing the game since data tracking began
+        hours_played : float64
+            Total hours spent playing the game since data tracking began
+        rank : float64
+            Overall rank by time played
+    '''
+    top = source_df[source_df['rank'] <= rank_num]
+    return top
+
 
 @app.route('/music/')
 def music():
