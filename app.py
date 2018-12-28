@@ -32,6 +32,7 @@ def gameplay():
     plots = []
     # grab source data
     source, complete, game_log, completed = init_data()
+    source_sample = source.head(3).to_html(index=False)
 
     # add weekly hours for most played game plot
     plot = game_of_the_week(source)
@@ -58,7 +59,8 @@ def gameplay():
     plots.append(components(plot))
 
     return render_template('gameplay.html', plots=plots,
-                           game_log=game_log, completed=completed)
+                           game_log=game_log, completed=completed,
+                           source_sample=source_sample)
 
 
 def init_data():
