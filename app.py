@@ -63,6 +63,10 @@ def gameplay():
     plot = line_graph_top(source)
     plots.append(components(plot))
 
+    # add weekly history (two games) graph
+    plot = graph_two_games_weekly(source)
+    plots.append(components(plot))
+
     return render_template('gameplay.html', plots=plots,
                            game_log=game_log, completed=completed,
                            source_sample=source_sample)
@@ -519,7 +523,7 @@ def line_graph_top(source, rank_num=5):
              [__agg_time_rank_by_day(source)['title']
               .isin(top_list)]
              [['date', 'title', 'rank_by_day']])
-    # TODO: add to bokeh, return plot
+    # add to bokeh, return plot
     graph = (graph.groupby(['date', 'title'])
              .sum()['rank_by_day'].unstack())
     # add this as bokeh graph, return plot
@@ -583,6 +587,71 @@ def __agg_time_rank_by_day(source):
 
     time_rank = time_rank.sort_values(['date', 'rank_by_day'])
     return time_rank
+
+
+def graph_two_games_weekly(source,
+                           game_title_1='Octopath Traveler',
+                           game_title_2='Monster Hunter Generations'):
+    '''
+    Graphs the amount of time spent in hours for two games by week
+
+    Returns
+    -------
+    graph_data : DataFrame
+        Summary of time spent in hours on two games.  Fields below.
+
+        index : datetime64[ns]
+            Date game was played
+        game_title_1 : float64
+            Hours spent playing game for specified date
+        game_title_2 : float64
+            Hours spent playing game for specified date
+    '''
+    # TODO: modify this to accept a list, and remove single_game_weekly
+    source_data = __weekly_hours_by_game(source)
+    # pull data for game_title_1
+    source_data_1 = source_data[(source_data['title'] == game_title_1)]
+    graph_data_1 = (source_data_1[['week_start', 'hours_played']]
+                    .set_index('week_start'))
+
+    # pull data for game_title_2
+    source_data_2 = source_data[(source_data['title'] == game_title_2)]
+    graph_data_2 = (source_data_2[['week_start', 'hours_played']]
+                    .set_index('week_start'))
+
+    # combine data
+    graph = graph_data_1.merge(graph_data_2, how='outer',
+                                    left_index=True, right_index=True)
+
+    # add in empty weeks
+    start = graph.index.min()
+    end = graph.index.max()
+    d = pd.date_range(start, end)
+    d = d[(d.weekday_name == 'Monday')]
+    d = pd.DataFrame(d).set_index(0)
+    graph = d.merge(graph, left_index=True, right_index=True,
+                    how='left')
+    graph.columns = [game_title_1, game_title_2]
+    # add and return bokeh plot
+    # TODO: add legend
+    # TODO: add widget to choose games to compare
+    title = 'Weekly History'
+    num_lines = len(graph.columns)
+    my_palette = ['#8e8d7d', '#acd1e0']
+
+    p = figure(plot_height=300,
+               sizing_mode='scale_width',
+               title=title,
+               x_axis_type='datetime')
+    p.multi_line(xs=[graph.index.values]*num_lines,
+                 ys=[graph[name].values for name in graph],
+                 line_color=my_palette,
+                 line_width=2)
+    return p
+    '''
+    graph_data.plot(title='Weekly History')
+    return graph_data
+    '''
 
 
 @app.route('/music/')
