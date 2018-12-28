@@ -476,6 +476,7 @@ def pie_graph_top(source, num_games=10):
     # pop out the first slice (assuming 10 items)
     # explode = (.1, 0, 0, 0, 0, 0, 0, 0, 0, 0)
     # plt.pie(game_rank, labels=tick_names, explode=explode)
+    # TODO: see if you can create a slider for the num_games
     graph = __current_top(__agg_total_time_played(source), num_games)
     game_rank = graph['hours_played']
     tick_names = graph['title']

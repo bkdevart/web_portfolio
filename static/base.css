@@ -32,6 +32,10 @@ main {
 	font-family: sans-serif;
 }
 
+main a {
+	color: #ffffff
+}
+
 footer {
   background-color: #acd1e0;
   padding: 1em ;
@@ -39,8 +43,8 @@ footer {
   font-family: sans-serif;
 }
 
-a {
-	color: #8e8d7d
+footer a {
+	color: #8e8d7d;
 }
 
 /*** RESPONSIVE STYLING ***/
