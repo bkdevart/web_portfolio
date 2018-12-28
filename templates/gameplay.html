@@ -9,7 +9,11 @@
     <h1 id="portfolio-goal">Gameplay</h1>
     <p>
       Here's some analytics I've created exploring the
-      patterns in my habits playing videogames.
+      patterns in my time playing videogames.  For information
+      on how these were created, check out the
+      <a href="#code-overview">how-to</a> section.
+      Source code can be viewed at
+      <a href="https://github.com/bkdevart/web_portfolio">GitHub</a>.
     </p>
     <!-- ==== START GRAPHS ====-->
     {% for plot in plots %}
@@ -19,8 +23,38 @@
       {% endfor %}
     </div>
     {% endfor %}
-
     <!-- end graphs -->
+  </article>
+  <article class="how-to">
+    <h1 id="code-overview">How this Dashboard Works</h1>
+    <p>
+      The data used to create this dashboard consists of two tables:
+      one is a log of time spent by day on each game, and the other
+      is a record of which games have been completed.  Both are CSV
+      files.
+    </p>
+    <h2 id="game-log-overview">game_log.csv</h2>
+    <p>
+      There are four fields to this table: title, time_played,
+      date, and system.
+      {{game_log | safe}}
+    </p>
+    <h2 id="completed-overview">completed.csv</h2>
+    <p>
+      There are three fields to this table: title, complete,
+      date_completed.
+      {{completed | safe}}
+    </p>
+    <h2 id="process-data">Processing the Data</h2>
+    <p>
+      These tables are imported using the Python library
+      <a href="https://pandas.pydata.org"><cite>pandas</cite></a>,
+      which will also be used to perform calculations on the data.
+      Fields are created that will be used frequently in
+      analysis, such as day of week, cumulative time spent, and
+      the start date of each week for a given data sample.
+      {{source_sample | safe}}
+    </p>
   </article>
 </main>
 {% endblock %}

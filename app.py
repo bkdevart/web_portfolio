@@ -1,11 +1,12 @@
 import os
 from datetime import datetime, date, timedelta
 from math import pi
+from itertools import product
 from flask import Flask, render_template
 from bokeh.plotting import figure
 from bokeh.models import ColumnDataSource
 from bokeh.embed import components
-from bokeh.palettes import RdBu
+from bokeh.palettes import RdBu, Category20
 from bokeh.transform import cumsum
 import pandas as pd
 import numpy as np
@@ -31,7 +32,8 @@ def index():
 def gameplay():
     plots = []
     # grab source data
-    source, complete = init_data()
+    source, complete, game_log, completed = init_data()
+    source_sample = source.head(3).to_html(index=False)
 
     # add weekly hours for most played game plot
     plot = game_of_the_week(source)
@@ -57,7 +59,13 @@ def gameplay():
     plot = pie_graph_top(source)
     plots.append(components(plot))
 
-    return render_template('gameplay.html', plots=plots)
+    # add top game line graph
+    plot = line_graph_top(source)
+    plots.append(components(plot))
+
+    return render_template('gameplay.html', plots=plots,
+                           game_log=game_log, completed=completed,
+                           source_sample=source_sample)
 
 
 def init_data():
@@ -71,6 +79,9 @@ def init_data():
                          parse_dates=['date', 'time_played'])
     complete = pd.read_csv(completed,
                            parse_dates=['date_completed'])
+    # storing initial csv states for how-to section
+    game_log = source.head(3).to_html(index=False)
+    completed = complete.head(3).to_html(index=False)
 
     # perform initial calculations
     source['minutes_played'] = ((source['time_played'].dt.hour * 60)
@@ -86,7 +97,7 @@ def init_data():
                             (source['date'].dt.dayofweek, unit='d'))
     source['month'] = source['date'].values.astype('datetime64[M]')
 
-    return source, complete
+    return source, complete, game_log, completed
 
 
 def game_of_the_week(source_data, num_weeks=16):
@@ -472,6 +483,7 @@ def pie_graph_top(source, num_games=10):
     # pop out the first slice (assuming 10 items)
     # explode = (.1, 0, 0, 0, 0, 0, 0, 0, 0, 0)
     # plt.pie(game_rank, labels=tick_names, explode=explode)
+    # TODO: see if you can create a slider for the num_games
     graph = __current_top(__agg_total_time_played(source), num_games)
     game_rank = graph['hours_played']
     tick_names = graph['title']
@@ -489,6 +501,88 @@ def pie_graph_top(source, num_games=10):
             end_angle=cumsum('angle'), legend='title',
             fill_color='color', source=source)
     return p
+
+
+def line_graph_top(source, rank_num=5):
+    '''
+    This graph shows every game that cracked the top rank number specified
+
+    Parameters
+    ----------
+    rank_num : int
+        Defines the range of rank numbers achieved, from 1 to rank_num.
+    '''
+    rank = __agg_time_rank_by_day(source)
+    top = (rank[rank['rank_by_day'] <= rank_num])
+    top_list = top['title']
+    graph = (__agg_time_rank_by_day(source)
+             [__agg_time_rank_by_day(source)['title']
+              .isin(top_list)]
+             [['date', 'title', 'rank_by_day']])
+    # TODO: add to bokeh, return plot
+    graph = (graph.groupby(['date', 'title'])
+             .sum()['rank_by_day'].unstack())
+    # add this as bokeh graph, return plot
+    title = 'All Games That Reached Top ' + str(rank_num)
+    num_lines = len(graph.columns)
+    my_palette = Category20[len(graph.columns)]
+    # TODO: look into upgrading bokeh to 1.0+ for legend
+    p = figure(plot_height=300,
+               sizing_mode='scale_width',
+               title=title,
+               x_axis_type='datetime')
+    p.multi_line(xs=[graph.index.values]*num_lines,
+                 ys=[graph[name].values for name in graph],
+                 line_color=my_palette,
+                 line_width=2)
+    return p
+
+
+def __agg_time_rank_by_day(source):
+    '''
+    Ranks total game hours by game, by day
+        - Calculates cumulative time spent in each game by day
+        - Ranks each game by cumulative time for each day
+
+    Returns
+    -------
+    time_rank : DataFrame
+        date : datetime64[ns]
+            Date of data sample.  This does not indicate that the game was
+            played, it represents cumulative totals for the game at this
+            date.
+        title : object (str)
+            Title of game
+        cum_total_minutes : float64
+            Cumulative minutes played for a given game, running from start
+            of data tracking
+        rank_by_day : float64
+            Title's time ranked for given day
+    '''
+    time_rank_by_day = pd.DataFrame(source[['title', 'date',
+                                            'cum_total_minutes']])
+    game_list = pd.Series(source['title'].unique())
+    date_list = pd.Series(source['date'].unique())
+
+    date_game = pd.DataFrame(list(product(date_list, game_list)),
+                             columns=['date', 'title'])
+    time_rank = pd.DataFrame(date_game.merge(time_rank_by_day, how='left'))
+    time_rank['rank_by_day'] = (time_rank.groupby('date')
+                                ['cum_total_minutes']
+                                .rank(method='dense', ascending=False))
+    time_rank.sort_values(['title', 'date'], inplace=True)
+
+    time_rank['cum_total_minutes'] = (time_rank.groupby('title')
+                                      ['cum_total_minutes'].ffill())
+
+    time_rank = time_rank[time_rank['cum_total_minutes'].notnull()]
+
+    time_rank['rank_by_day'] = (time_rank.groupby('date')
+                                ['cum_total_minutes']
+                                .rank(method='dense', ascending=False))
+
+    time_rank = time_rank.sort_values(['date', 'rank_by_day'])
+    return time_rank
 
 
 @app.route('/music/')
