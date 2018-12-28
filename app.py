@@ -31,7 +31,7 @@ def index():
 def gameplay():
     plots = []
     # grab source data
-    source, complete = init_data()
+    source, complete, game_log, completed = init_data()
 
     # add weekly hours for most played game plot
     plot = game_of_the_week(source)
@@ -57,7 +57,8 @@ def gameplay():
     plot = pie_graph_top(source)
     plots.append(components(plot))
 
-    return render_template('gameplay.html', plots=plots)
+    return render_template('gameplay.html', plots=plots,
+                           game_log=game_log, completed=completed)
 
 
 def init_data():
@@ -71,6 +72,9 @@ def init_data():
                          parse_dates=['date', 'time_played'])
     complete = pd.read_csv(completed,
                            parse_dates=['date_completed'])
+    # storing initial csv states for how-to section
+    game_log = source.head(3).to_html(index=False)
+    completed = complete.head(3).to_html(index=False)
 
     # perform initial calculations
     source['minutes_played'] = ((source['time_played'].dt.hour * 60)
@@ -86,7 +90,7 @@ def init_data():
                             (source['date'].dt.dayofweek, unit='d'))
     source['month'] = source['date'].values.astype('datetime64[M]')
 
-    return source, complete
+    return source, complete, game_log, completed
 
 
 def game_of_the_week(source_data, num_weeks=16):

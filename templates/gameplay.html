@@ -19,8 +19,28 @@
       {% endfor %}
     </div>
     {% endfor %}
-
     <!-- end graphs -->
+  </article>
+  <article class="how-to">
+    <h1 id="code-overview">How This Dashboard Works</h1>
+    <p>
+      The data used to create this dashboard consists of two tables:
+      one is a log of time spent by day on each game, and the other
+      is a record of which games have been completed.  Both are CSV
+      files.
+    </p>
+    <h2 id="game-log-overview">game_log.csv</h2>
+    <p>
+      There are four fields to this table: title, time_played,
+      date, and system.
+      {{game_log | safe}}
+    </p>
+    <h2 id="completed-overview">completed.csv</h2>
+    <p>
+      There are three fields to this table: title, complete,
+      date_completed.
+      {{completed | safe}}
+    </p>
   </article>
 </main>
 {% endblock %}
