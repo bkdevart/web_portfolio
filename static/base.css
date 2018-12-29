@@ -1,23 +1,32 @@
 /*** Nav Bar ***/
-.nav {
+#navigation {
 	background-color: #acd1e0; /* nav bar color */
 	overflow: hidden; /* Contain links and clip any overflow */
 }
 
 /*** Nav Bar Links ***/
-.nav a{
-	float: left;	/* Stack links left*/
-	padding: .5em 1em;
-	text-decoration: none;  /* remove link underline */
-	color: #8e8d7d;
-  font-family: sans-serif;
-	font-weight: bold;
+#navigation li {
+	list-style-type: none; /* remove bullets from li */
 }
 
 /*** Nav Bar Links when Mouse Hovers ***/
-.nav a:hover{
+#navigation a:hover {
 	background-color: #8e8d7d;
   color: #ffffff;
+}
+
+#navigation a:active {
+	background-color: #8e8d7d;
+  color: #ffffff;
+}
+
+#navigation a {
+	text-decoration: none;  /* remove link underline */
+	color: #8e8d7d;
+	font-family: sans-serif;
+	font-weight: bold;
+	float: left;	/* Stack links left*/
+	padding: .5em 1em;
 }
 
 /*** Grid layout for graphs ***/
