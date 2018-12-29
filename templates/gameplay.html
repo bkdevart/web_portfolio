@@ -6,9 +6,9 @@
 {% block main %}
 <main role="main">
   <article class="gameplay">
-    <h1 id="portfolio-goal">Gameplay</h1>
+    <h1 id="portfolio-goal">Gameplay Analysis Dashboard</h1>
     <p>
-      Here's some analytics I've created exploring the
+      Below are analytics I've created exploring the
       patterns in my time playing videogames.  For information
       on how these were created, check out the
       <a href="#code-overview">how-to</a> section.
@@ -25,6 +25,7 @@
     {% endfor %}
     <!-- end graphs -->
   </article>
+  <!-- ==== START HOW-TO CONTENT ==== -->
   <article class="how-to">
     <h1 id="code-overview">How this Dashboard Works</h1>
     <p>
@@ -56,6 +57,7 @@
       {{source_sample | safe}}
     </p>
   </article>
+  <!-- end how-to content -->
 </main>
 {% endblock %}
 <!-- end main content -->
