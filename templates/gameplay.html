@@ -18,8 +18,11 @@
     <!-- ==== START GRAPHS ====-->
     {% for plot in plots %}
     <div class="col">
-      {% for part in plot %}
-        <div class="row">{{part | safe}}</div>
+      <!-- content part -->
+      {{plot[0] | safe}}
+      <!-- graph part -->
+      {% for part in plot[1] %}
+        <div class="row">{{part | safe }}</div>
       {% endfor %}
     </div>
     {% endfor %}
