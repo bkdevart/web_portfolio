@@ -24,14 +24,12 @@
     <div class="container">
       <header role="banner">
       {% block navigation %}
-        <nav role="navigation">
           <ul id="navigation">
           {% for href, id, caption in navigation_bar %}
-            <li{% if id == active_page %} class="active"{% endif
-              %}><a href="{{ href|e }}">{{ caption|e }}</a></li>
+            <li><a href="{{ href|e }}" {% if id == active_page %} class="active"{% endif
+              %}>{{ caption|e }}</a></li>
           {% endfor %}
           </ul>
-        </nav>
       {% endblock %}
       </header>
     </div>

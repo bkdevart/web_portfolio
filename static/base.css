@@ -15,7 +15,7 @@
   color: #ffffff;
 }
 
-#navigation a:active {
+#navigation a.active {
 	background-color: #8e8d7d;
   color: #ffffff;
 }
