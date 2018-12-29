@@ -1,23 +1,34 @@
 /*** Nav Bar ***/
-.nav {
+.navigation {
 	background-color: #acd1e0; /* nav bar color */
 	overflow: hidden; /* Contain links and clip any overflow */
+	padding: 0;
 }
 
 /*** Nav Bar Links ***/
-.nav a{
-	float: left;	/* Stack links left*/
-	padding: .5em 1em;
-	text-decoration: none;  /* remove link underline */
-	color: #8e8d7d;
-  font-family: sans-serif;
-	font-weight: bold;
+.navigation li {
+	list-style-type: none; /* remove bullets from li */
 }
 
 /*** Nav Bar Links when Mouse Hovers ***/
-.nav a:hover{
+.navigation a:hover {
 	background-color: #8e8d7d;
   color: #ffffff;
+}
+
+/*** Nav Bar selected item ***/
+.navigation a.active {
+	background-color: #8e8d7d;
+  color: #ffffff;
+}
+
+.navigation a {
+	text-decoration: none;  /* remove link underline */
+	color: #8e8d7d;
+	font-family: sans-serif;
+	font-weight: bold;
+	float: left;	/* Stack links left*/
+	padding: .5em 1em;
 }
 
 /*** Grid layout for graphs ***/
@@ -47,16 +58,49 @@ footer a {
 	color: #8e8d7d;
 }
 
+/*** Table styling ***/
+table {
+	border-collapse: collapse;
+	border: 1px solid white;
+}
+
+
+th {
+	border-bottom: 1px solid white;
+	background-color: white;
+  color: #8e8d7d;
+	padding: 2px;
+	text-align: center;
+}
+
+td {
+  border-bottom: 1px solid white;
+	padding: 2px;
+	text-align: center;
+	border: 1px solid white;
+}
+
+tr:nth-child(even) {
+	background-color: #acd1e0;
+	color: #8e8d7d;
+	border: 1px solid white;
+}
+
+tr:nth-child(odd) {
+	background-color: #8e8d7d;
+  color: white;
+}
+
 /*** RESPONSIVE STYLING ***/
-@media screen and (max-width: 600px) {
-	.nav a{
+@media screen and (max-width: 800px) {
+	.navigation a {
 		float:none;
 		font-size: 1.5em;
 		display: block;
-		width: 600px;
+		width: 800px;
 	}
 
   body {
-		font-size: ;
+		font-size: 1em;
 	}
 }

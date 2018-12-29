@@ -1,47 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
+<!-- public vars for navigation -->
+{% set navigation_bar = [
+  ('/', 'index', 'Overview'),
+  ('/gameplay/', 'gameplay', 'Gameplay'),
+  ('/music/', 'music', 'Music'),
+  ('/exercise/', 'exercise', 'Exercise')
+  ] -%}
+{% set active_page = active_page|default('index') -%}
   <head>
-    {% block head %}
     <meta charset="utf-8" />
-    <title>{% block title %}{% endblock %}: Analysis Portfolio</title>
+    <title>{% block title %}{% endblock %}: Analysis</title>
     <link rel="stylesheet"
       href="{{ url_for('static', filename='base.css') }}">
+    <!-- Bokeh includes-->
     <link rel="stylesheet" href="http://cdn.pydata.org/bokeh/release/bokeh-0.13.0.min.css" type="text/css" />
     <script type="text/javascript" src="http://cdn.pydata.org/bokeh/release/bokeh-0.13.0.min.js"></script>
-    {% endblock %}
   </head>
   <body>
-    {% block body %}
-    <!-- ==== START PAGE CONTAINER ==== -->
-    <div class="container">
-      <header role="banner">
-        <nav role="navigation">
-          {% block navigation %}
-          <div class="nav">
-            <a href="/">Home</a>
-            <a href="/gameplay/">Gameplay Analysis</a>
-            <a href="/music/">Music Analysis</a>
-            <a href="/exercise/">Exercise Analysis</a>
-          </div>
-          {% endblock %}
-        </nav>
-      </header>
-    </div>
+    <!-- ==== START NAVIGATION ==== -->
+    <header role="banner">
+    {% block navigation %}
+      <ul class="navigation">
+      {% for href, id, caption in navigation_bar %}
+        <li><a href="{{ href|e }}"
+          {% if id == active_page %}class="active"{% endif %}>
+          {{ caption|e }}</a></li>
+      {% endfor %}
+      </ul>
     {% endblock %}
+    </header>
   </body>
-  {% block main %}
-  <!-- 2 row, 2 column grid -->
-  <!--
-  <div class="row">
-    <div class="col">Item 1</div>
-    <div class="col">Item 2</div>
-  <div class="row">
-    <div class="col">Item 1</div>
-    <div class="col">Item 2</div>
-  -->
-  {% endblock %}
+  <!-- ==== PAGE-SPECIFIC CONTENT ==== -->
+  {% block main %}{% endblock %}
+  <!-- ==== START FOOTER ==== -->
   <footer role="contentinfo">
-    {% block footer %}
     <p>
       Brandon Knox is a Service Operations Analytics &
       Reporting Senior Specialist for a finance company.
@@ -51,6 +44,5 @@
       <a href="https://github.com/bkdevart/web_portfolio">Brandon's GitHub</a>.
     </p>
     <p><small>&copy; 2019 Brandon Knox</small></p>
-    {% endblock %}
   </footer>
 </html>
