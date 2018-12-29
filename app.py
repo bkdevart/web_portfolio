@@ -399,28 +399,6 @@ def bar_graph_top(source, num_games=10):
            line_color='#8e8d7d',
            fill_color='#8e8d7d')
     return p
-    '''
-    # create plots
-    fig, ax = plt.subplots()
-    index = np.arange(n_groups)
-    bar_width = 0.35
-    opacity = 0.8
-
-    plt.barh(index + bar_width, game_rank, bar_width,
-             alpha=opacity,
-             color='g',
-             label='Game')
-
-    plt.ylabel('Game')
-    plt.xlabel('Hours Played')
-    plt.title('Rank by Game Time')
-    plt.yticks(index + bar_width, tick_names)
-
-    plt.tight_layout()
-    plt.savefig((self._config['output'] + 'games.png'),
-                dpi=300)
-    plt.show()
-    '''
 
 
 def __agg_total_time_played(source):
@@ -648,10 +626,6 @@ def graph_two_games_weekly(source,
                  line_color=my_palette,
                  line_width=2)
     return p
-    '''
-    graph_data.plot(title='Weekly History')
-    return graph_data
-    '''
 
 
 @app.route('/music/')
