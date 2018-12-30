@@ -11,6 +11,9 @@ from bokeh.models import ColumnDataSource
 from bokeh.embed import components
 from bokeh.palettes import RdBu, Category20
 from bokeh.transform import cumsum
+from bokeh.io import output_file, show
+from bokeh.layouts import widgetbox
+from bokeh.models.widgets import Slider
 
 # analysis imports
 import pandas as pd
@@ -492,6 +495,12 @@ def pie_graph_top(source, num_games=10):
             start_angle=cumsum('angle', include_zero=True),
             end_angle=cumsum('angle'), legend='title',
             fill_color='color', source=source)
+
+    # TODO: add slider widget
+    output_file("slider.html")
+    slider = Slider(start=0, end=10, value=1, step=1, title="Stuff")
+    widgetbox(slider)
+
     # TODO: replace this with meaningful content
     content = '<p></p>'
     return p, content
