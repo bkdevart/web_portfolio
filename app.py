@@ -3,16 +3,16 @@ import os
 from datetime import datetime, date, timedelta
 from math import pi
 from itertools import product
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 
 # graph imports
-from bokeh.plotting import figure
-from bokeh.models import ColumnDataSource
+from bokeh.plotting import figure, output_file, show
+from bokeh.models import ColumnDataSource, CustomJS, Slider
 from bokeh.embed import components
 from bokeh.palettes import RdBu, Category20
 from bokeh.transform import cumsum
 from bokeh.io import output_file, show
-from bokeh.layouts import widgetbox
+from bokeh.layouts import widgetbox, column
 from bokeh.models.widgets import Slider
 
 # analysis imports
@@ -38,14 +38,20 @@ def index():
 
 @app.route('/gameplay/')
 def gameplay():
-    plots = [[]]
-    # grab source data
+    # init dashboard element lists
+    plots = []
+    dynamic = []
+
+    # init source data
     source, complete, game_log, completed = init_data()
     source_sample = source.head(3).to_html(index=False)
-
-    # print games lacking attention
-    # content = need_to_play(source, complete)
-    # plots.append((content, None))
+    titles = (source[['title']]
+              .drop_duplicates()
+              .sort_values('title'))
+    titles = titles['title'].tolist()
+    current_title = request.args.get("title_select")
+    if current_title == None:
+        current_title = '1-2-Switch'
 
     # add weekly hours for most played game plot
     plot, content = game_of_the_week(source)
@@ -79,9 +85,15 @@ def gameplay():
     plot, content = graph_two_games_weekly(source)
     plots.append((content, components(plot)))
 
+    # single game view
+    plot, content = single_game(source, complete, current_title)
+    dynamic.append((content, components(plot)))
+
     return render_template('gameplay.html', plots=plots,
                            game_log=game_log, completed=completed,
-                           source_sample=source_sample)
+                           source_sample=source_sample,
+                           titles=titles,
+                           current_title=current_title)
 
 
 def init_data():
@@ -726,6 +738,75 @@ def last_played_game(source):
     last_played_by_game['dow'] = (last_played_by_game['date']
                                   .dt.weekday_name)
     return last_played_by_game
+
+
+def single_game(source, complete, title):
+    content = game_completed(complete, title)
+    time, p = single_game_history(source, title)
+    content = content + ' ' + time
+    return p, content
+
+
+def game_completed(completed, game_title):
+    df = completed[completed['title'] == game_title]
+    game_complete = df['complete'].values[0]
+    if game_complete:
+        # removes time from date
+        date_complete = str(df['date_completed'].values[0])[:10]
+        complete_status = (game_title + ' was completed on '
+                           + date_complete)
+    else:
+        complete_status = (game_title
+                           + ' has not been completed yet.')
+    return complete_status
+
+
+def single_game_history(source, game_title):
+    df = source[source['title'] == game_title]
+    # add total hours spent playing game
+    total_hours = df['hours_played'].sum()
+    playtime = ('Played for ' + str("{0:.2f}".format(total_hours))
+                + ' hours.')
+    # create date range for graph
+    # make range start from the 1st of the month on the min side
+    min_date = df['date'].min().strftime('%Y-%m-01')
+    date_range = pd.DataFrame(pd.date_range(min_date, df['date'].max()))
+    date_range.columns = ['date']
+    # format date shorter for graph (ax object?)
+    # plt.locator_params(axis='x', nbins=10)
+    df = pd.merge(df, date_range, how='right',
+                  on='date').sort_values('date').reset_index()
+    # get positions of start of each month, name/year of month
+    locs = df[df['date'].dt.day == 1].index
+    # remove time from datetime
+    labels = (df[df['date'].dt.day == 1]['date'].values
+              .astype('datetime64[D]'))
+    graph = df[['date', 'hours_played']]  # .set_index('date')
+    # TODO: add bokeh plot and return
+    source = ColumnDataSource(graph)
+    # y_range = list(set(graph['title']))
+    title = 'Hours Played'
+    x_range = graph['date']
+    top = graph['hours_played']
+
+    p = figure(plot_height=300,
+               sizing_mode='scale_width',
+               # x_range=x_range,
+               title=title)
+    p.vbar(x='date',
+           source=source,
+           # right='days',
+           width=.5,
+           top='hours_played',
+           line_color='#8e8d7d',
+           fill_color='#8e8d7d')
+    '''
+    ax = df.plot.bar(title='Hours Played')
+    plt.xticks(locs, labels)
+    ax.set_xlabel('date played')
+    ax.set_ylabel('hours')
+    '''
+    return playtime, p
 
 
 @app.route('/music/')

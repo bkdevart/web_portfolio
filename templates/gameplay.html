@@ -15,7 +15,23 @@
       Source code can be viewed at
       <a href="https://github.com/bkdevart/web_portfolio">GitHub</a>.
     </p>
-    <!-- ==== START GRAPHS ====-->
+    <!-- ==== START SINGLE GAME VIEW ==== -->
+    <h2>Single Game</h2>
+    <form action="/">
+    <select name="title_select">
+    	{% for title in titles %}
+    		{% if title == current_title %}
+    			<option selected value="{{ title }}">{{ title }}</option>
+    		{% else %}
+    			<option value="{{ title }}">{{ title }}</option>
+    		{% endif %}
+    	{% endfor %}
+    </select>
+    <input type="submit">
+    </form>
+    <!-- end single game view -->
+    <!-- ==== START DASHBOARD ====-->
+    <h2>All Games</h2>
     {% for plot in plots %}
     <div class="col">
       <!-- content part -->
