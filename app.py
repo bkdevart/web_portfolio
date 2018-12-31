@@ -93,7 +93,8 @@ def gameplay():
                            game_log=game_log, completed=completed,
                            source_sample=source_sample,
                            titles=titles,
-                           current_title=current_title)
+                           current_title=current_title,
+                           dynamic=dynamic)
 
 
 def init_data():

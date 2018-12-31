@@ -17,7 +17,10 @@
     </p>
     <!-- ==== START SINGLE GAME VIEW ==== -->
     <h2>Single Game</h2>
-    <form action="/">
+    <p>
+      Choose a game from the dropdown below and select submit.
+    </p>
+    <form action="/gameplay/">
     <select name="title_select">
     	{% for title in titles %}
     		{% if title == current_title %}
@@ -29,6 +32,12 @@
     </select>
     <input type="submit">
     </form>
+    {% for plot in dynamic %}
+      {{plot[0] | safe}}
+      {% for part in plot[1] %}
+        {{part | safe}}
+      {% endfor %}
+    {% endfor %}
     <!-- end single game view -->
     <!-- ==== START DASHBOARD ====-->
     <h2>All Games</h2>
