@@ -755,7 +755,7 @@ def game_completed(completed, game_title):
         # removes time from date
         date_complete = str(df['date_completed'].values[0])[:10]
         complete_status = (game_title + ' was completed on '
-                           + date_complete)
+                           + date_complete + '.')
     else:
         complete_status = (game_title
                            + ' has not been completed yet.')
@@ -783,30 +783,21 @@ def single_game_history(source, game_title):
     labels = (df[df['date'].dt.day == 1]['date'].values
               .astype('datetime64[D]'))
     graph = df[['date', 'hours_played']]  # .set_index('date')
-    # TODO: add bokeh plot and return
+    # add bokeh plot and return
     source = ColumnDataSource(graph)
-    # y_range = list(set(graph['title']))
     title = 'Hours Played'
-    x_range = graph['date']
     top = graph['hours_played']
 
     p = figure(plot_height=300,
                sizing_mode='scale_width',
-               # x_range=x_range,
                title=title)
+               # TODO: fix date display
     p.vbar(x='date',
            source=source,
-           # right='days',
            width=.5,
            top='hours_played',
            line_color='#8e8d7d',
            fill_color='#8e8d7d')
-    '''
-    ax = df.plot.bar(title='Hours Played')
-    plt.xticks(locs, labels)
-    ax.set_xlabel('date played')
-    ax.set_ylabel('hours')
-    '''
     return playtime, p
 
 
