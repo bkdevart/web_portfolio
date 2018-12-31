@@ -85,9 +85,17 @@ def gameplay():
     plot, content = graph_two_games_weekly(source)
     plots.append((content, components(plot)))
 
-    # single game view
+    # single game view - hours
     plot, content = single_game(source, complete, current_title)
     dynamic.append((content, components(plot)))
+
+    # single game view - streaks
+    plot, content = single_game_streaks(source, current_title)
+    # check if plot is null (no streaks)
+    if plot == ['', '']:
+        dynamic.append((content, plot))
+    else:
+        dynamic.append((content, components(plot)))
 
     return render_template('gameplay.html', plots=plots,
                            game_log=game_log, completed=completed,
@@ -782,9 +790,6 @@ def single_game_history(source, game_title):
     # remove time from datetime
     # labels = (df[df['date'].dt.day == 1]['date'].values)
     graph = pd.DataFrame(df[['date', 'hours_played']])
-    # convert date to string for display
-    graph['date_str'] = graph['date'].apply(lambda x: str(x)
-                                     .split(' 00:00:00')[0])
     # add bokeh plot and return
     source = ColumnDataSource(graph)
     title = 'Hours Played by Day for ' + game_title
@@ -889,23 +894,27 @@ def single_game_streaks(source, game_title):
                                                end=streak_dates.max()))
                     .set_index(0))
         # join on index with graph_data
-        graph_data_final = all_days.join(graph_data, how='left')
+        graph = all_days.join(graph_data, how='left').reset_index()
+        graph.columns = ['date', 'played']
         # graph_data_final.plot(title='Gameplay Streaks')
         # TODO: add bokeh graph, return plot, content
         title = 'Gameplay Streaks'
-        num_lines = len(graph.columns)
-        my_palette = ['#8e8d7d']
+        source = ColumnDataSource(graph)
+        # num_lines = len(graph.columns)
 
         p = figure(plot_height=300,
                    sizing_mode='scale_width',
                    title=title,
                    x_axis_type='datetime')
-        p.multi_line(xs=[graph.index.values]*num_lines,
-                     ys=[graph[name].values for name in graph],
-                     line_color=my_palette,
-                     line_width=2)
+        p.line(source=source,
+               x='date',
+               y='played',
+               line_color='#8e8d7d',
+               line_width=2)
     else:
         streak_output = 'No streaks.'
+        p = ['','']
+    return p, streak_output
 
 @app.route('/music/')
 def music():
