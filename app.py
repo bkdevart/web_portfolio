@@ -780,26 +780,132 @@ def single_game_history(source, game_title):
     # get positions of start of each month, name/year of month
     locs = df[df['date'].dt.day == 1].index
     # remove time from datetime
-    labels = (df[df['date'].dt.day == 1]['date'].values
-              .astype('datetime64[D]'))
-    graph = df[['date', 'hours_played']]  # .set_index('date')
+    # labels = (df[df['date'].dt.day == 1]['date'].values)
+    graph = pd.DataFrame(df[['date', 'hours_played']])
+    # convert date to string for display
+    graph['date_str'] = graph['date'].apply(lambda x: str(x)
+                                     .split(' 00:00:00')[0])
     # add bokeh plot and return
     source = ColumnDataSource(graph)
-    title = 'Hours Played'
+    title = 'Hours Played by Day for ' + game_title
     top = graph['hours_played']
+    # x_range = list(set(graph['date_str']))
 
     p = figure(plot_height=300,
                sizing_mode='scale_width',
+               x_axis_type='datetime',
                title=title)
-               # TODO: fix date display
     p.vbar(x='date',
            source=source,
-           width=.5,
+           width=2,
            top='hours_played',
            line_color='#8e8d7d',
            fill_color='#8e8d7d')
     return playtime, p
 
+
+def single_game_streaks(source, game_title):
+    '''
+    Gives detailed information on gameplay streaks for specified game_title
+    '''
+    df = get_streaks(source)
+    # import pdb; pdb.set_trace()
+    df = df[df['title'] == game_title]
+    # check for 0 streaks to avoid errors
+    if len(df) != 0:
+        # init this to true for first loop
+        first_streak = True
+        streak_ranges = pd.DataFrame(columns=['start', 'end'])
+        # loop through streak_num col, starting with 1 until next 1 reached
+        # for index, row in df.iterrows():
+        for i, (index, row) in enumerate(df.iterrows()):
+            # import pdb; pdb.set_trace()
+            # record the date at 1, and also last next_day before next 1
+            # two things would trigger logging next_day:
+            # 1. we hit streak_num = 1 after first streak_num = 1
+            # 2. we hit the end of the dataframe
+            start = row['date']
+            streak = row['streak_num']
+            if streak == 1.0:
+                # need to find out if this is the first streak for logic
+                if first_streak is False:
+                    last_df = end
+                    # append date at 1 and last next_day to dataframe
+                    add_row = pd.DataFrame([(start_df, last_df)],
+                                           columns=['start', 'end'])
+                    streak_ranges = pd.concat([streak_ranges, add_row])
+                # no matter what, start begins here
+                start_df = start
+                # first_streak = False
+            # repeat until end of dataframe is reached
+            # check for end of df
+            if i == len(df) - 1:
+                last_df = row['next_day']
+                add_row = pd.DataFrame([(start_df, last_df)],
+                                       columns=['start', 'end'])
+                streak_ranges = pd.concat([streak_ranges, add_row])
+            first_streak = False
+            # because of the algorithm's lag, this needs to be logged last
+            end = row['next_day']
+        # create column for number of days for each streak
+        streak_ranges['days'] = (streak_ranges['end']
+                                 - streak_ranges['start'])
+        # create column for rank based on days for each streak
+        streak_ranges['rank'] = streak_ranges['days'].rank(ascending=False,
+                                                           method='dense')
+        max_days = (streak_ranges[streak_ranges['rank'] == 1][['days']]
+                    .values)
+        max_start = (streak_ranges[streak_ranges['rank'] == 1][['start']]
+                     .values)
+        max_end = streak_ranges[streak_ranges['rank'] == 1][['end']].values
+        streak_output = str(len(streak_ranges)) + ' streak(s).  '
+        # fix print out summary of streaks - maximum, total num, etc
+        max_days = int(max_days[0][0] / np.timedelta64(1, 'D'))
+        max_start = (pd.to_datetime(str(max_start[0][0]))
+                     .strftime('%m-%d-%Y'))
+        max_end = (pd.to_datetime(str(max_end[0][0]))
+                     .strftime('%m-%d-%Y'))
+        # TODO: modify to display current streaks if they are longest
+        streak_output = (streak_output + 'The longest streak '
+                         f'played was for {max_days} days, ' +
+                         f'starting on {max_start} and ' +
+                         f'running until {max_end}.')
+
+        # create graph of streaks and display
+        streak_dates = pd.Series()
+        for i, (index, row) in enumerate(streak_ranges.iterrows()):
+            # start by create date series between each start and end
+            start = row['start']
+            end = row['end']
+            new_range = pd.date_range(start, end)
+            streak_dates = streak_dates.append(new_range.to_series())
+
+        graph_data = pd.DataFrame(streak_dates)
+        # create value for graphing, and remove extra date column
+        graph_data['played'] = 1
+        graph_data = graph_data['played']
+        # create dates for gaps between streaks
+        all_days = (pd.DataFrame(pd.date_range(start=streak_dates.min(),
+                                               end=streak_dates.max()))
+                    .set_index(0))
+        # join on index with graph_data
+        graph_data_final = all_days.join(graph_data, how='left')
+        # graph_data_final.plot(title='Gameplay Streaks')
+        # TODO: add bokeh graph, return plot, content
+        title = 'Gameplay Streaks'
+        num_lines = len(graph.columns)
+        my_palette = ['#8e8d7d']
+
+        p = figure(plot_height=300,
+                   sizing_mode='scale_width',
+                   title=title,
+                   x_axis_type='datetime')
+        p.multi_line(xs=[graph.index.values]*num_lines,
+                     ys=[graph[name].values for name in graph],
+                     line_color=my_palette,
+                     line_width=2)
+    else:
+        streak_output = 'No streaks.'
 
 @app.route('/music/')
 def music():
