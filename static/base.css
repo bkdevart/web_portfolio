@@ -32,9 +32,7 @@
 }
 
 /*** Grid layout for graphs ***/
-.col {
-	display: inline-grid;
-}
+
 
 main {
 	background-color: #8e8d7d;

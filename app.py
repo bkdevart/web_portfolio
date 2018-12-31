@@ -1,13 +1,21 @@
+# base imports
 import os
 from datetime import datetime, date, timedelta
 from math import pi
 from itertools import product
-from flask import Flask, render_template
-from bokeh.plotting import figure
-from bokeh.models import ColumnDataSource
+from flask import Flask, render_template, request
+
+# graph imports
+from bokeh.plotting import figure, output_file, show
+from bokeh.models import ColumnDataSource, CustomJS, Slider
 from bokeh.embed import components
 from bokeh.palettes import RdBu, Category20
 from bokeh.transform import cumsum
+from bokeh.io import output_file, show
+from bokeh.layouts import widgetbox, column
+from bokeh.models.widgets import Slider
+
+# analysis imports
 import pandas as pd
 import numpy as np
 
@@ -30,46 +38,63 @@ def index():
 
 @app.route('/gameplay/')
 def gameplay():
+    # init dashboard element lists
     plots = []
-    # grab source data
+    dynamic = []
+
+    # init source data
     source, complete, game_log, completed = init_data()
     source_sample = source.head(3).to_html(index=False)
+    titles = (source[['title']]
+              .drop_duplicates()
+              .sort_values('title'))
+    titles = titles['title'].tolist()
+    current_title = request.args.get("title_select")
+    if current_title == None:
+        current_title = '1-2-Switch'
 
     # add weekly hours for most played game plot
-    plot = game_of_the_week(source)
-    plots.append(components(plot))
+    plot, content = game_of_the_week(source)
+    plots.append((content, components(plot)))
 
     # add weekly hours distribution pie graph
-    plot = weekly_hours_snapshot(source)
-    plots.append(components(plot))
+    plot, content = weekly_hours_snapshot(source, complete)
+    plots.append((content, components(plot)))
 
     # add top 10 streaks graph
-    plot = check_streaks(source)
-    plots.append(components(plot))
+    plot, content = check_streaks(source)
+    plots.append((content, components(plot)))
 
     # add weekly hours graph
-    plot = line_weekly_hours(source)
-    plots.append(components(plot))
+    plot, content = line_weekly_hours(source)
+    plots.append((content, components(plot)))
 
     # add rank by game time graph
-    plot = bar_graph_top(source)
-    plots.append(components(plot))
+    plot, content = bar_graph_top(source)
+    plots.append((content, components(plot)))
 
     # add top game time pie graph
-    plot = pie_graph_top(source)
-    plots.append(components(plot))
+    plot, content = pie_graph_top(source)
+    plots.append((content, components(plot)))
 
     # add top game line graph
-    plot = line_graph_top(source)
-    plots.append(components(plot))
+    plot, content = line_graph_top(source)
+    plots.append((content, components(plot)))
 
     # add weekly history (two games) graph
-    plot = graph_two_games_weekly(source)
-    plots.append(components(plot))
+    plot, content = graph_two_games_weekly(source)
+    plots.append((content, components(plot)))
+
+    # single game view
+    plot, content = single_game(source, complete, current_title)
+    dynamic.append((content, components(plot)))
 
     return render_template('gameplay.html', plots=plots,
                            game_log=game_log, completed=completed,
-                           source_sample=source_sample)
+                           source_sample=source_sample,
+                           titles=titles,
+                           current_title=current_title,
+                           dynamic=dynamic)
 
 
 def init_data():
@@ -158,14 +183,15 @@ def game_of_the_week(source_data, num_weeks=16):
     most_recent_week = weekly_top_games['week_start'].dt.date.iloc[-1]
     curr_top_game = weekly_top_games['title'].iloc[-1]
     # TODO: convert this line to a string, figure out how display in HTML
-    # top_game = f'Top Game for week of {most_recent_week}: {curr_top_game}'
-    return plot
+    top_game = f'Top Game for Week of {most_recent_week}: {curr_top_game}'
+    return plot, top_game
 
 
-def weekly_hours_snapshot(source):
+def weekly_hours_snapshot(source, complete):
     '''
     Displays pie chart of time played per game in curretn week
     '''
+    content = need_to_play(source, complete)
     df = __weekly_hours_by_game(source)
     # filter to current week
     current_week = df['week_start'].max()
@@ -178,12 +204,12 @@ def weekly_hours_snapshot(source):
     source = ColumnDataSource(df)
     p = figure(plot_height=300,
                sizing_mode='scale_width',
-               title='Weekly Hours Distribution')
+               title='Current Week Hours Distribution')
     p.wedge(x=0, y=1, radius=0.4, line_color='white',
             start_angle=cumsum('angle', include_zero=True),
             end_angle=cumsum('angle'), legend='title',
             fill_color='color', source=source)
-    return p
+    return p, content
 
 
 def __weekly_hours_by_game(source):
@@ -244,17 +270,13 @@ def check_streaks(source, top_games=10):
                                                          'streak_num']])
     # turn the title(s) into a list to print
     # if current_streak empty, put 'None' in list
-    # TODO: adapt this to string and find out how to display
-    '''
-    print('\nCurrent streak(s):')
+    content = '\nCurrent streak(s): '
     if len(current_streak) == 0:
-        print('None')
+        content = content + 'None'
     else:
         current_streak['days'] = current_streak['streak_num'] + 1
-        current_streak = (current_streak[['title', 'days']]
-                          .set_index('title'))
-        print(current_streak)
-    '''
+        current_streak = current_streak[['title', 'days']]
+        content = content + current_streak.to_html(index=False)
     # take max streak_sum, grouped by title, store in new object
     max_streak = df.groupby('title', as_index=False)['streak_num'].max()
     max_streak['days'] = max_streak['streak_num'] + 1
@@ -278,7 +300,7 @@ def check_streaks(source, top_games=10):
            height=.5,
            line_color='#8e8d7d',
            fill_color='#8e8d7d')
-    return p
+    return p, content
 
 
 def get_streaks(source):
@@ -330,7 +352,9 @@ def line_weekly_hours(source):
                  ys=[graph[name].values for name in graph],
                  line_color=my_palette,
                  line_width=2)
-    return p
+    # TODO: replace this with meaningful content
+    content = '<p></p>'
+    return p, content
 
 def __agg_week(source):
     '''
@@ -398,7 +422,9 @@ def bar_graph_top(source, num_games=10):
            height=.5,
            line_color='#8e8d7d',
            fill_color='#8e8d7d')
-    return p
+    # TODO: replace this with meaningful content
+    content = '<p></p>'
+    return p, content
 
 
 def __agg_total_time_played(source):
@@ -482,7 +508,15 @@ def pie_graph_top(source, num_games=10):
             start_angle=cumsum('angle', include_zero=True),
             end_angle=cumsum('angle'), legend='title',
             fill_color='color', source=source)
-    return p
+
+    # TODO: add slider widget
+    output_file("slider.html")
+    slider = Slider(start=0, end=10, value=1, step=1, title="Stuff")
+    widgetbox(slider)
+
+    # TODO: replace this with meaningful content
+    content = '<p></p>'
+    return p, content
 
 
 def line_graph_top(source, rank_num=5):
@@ -517,7 +551,9 @@ def line_graph_top(source, rank_num=5):
                  ys=[graph[name].values for name in graph],
                  line_color=my_palette,
                  line_width=2)
-    return p
+    # TODO: replace this with meaningful content
+    content = '<p></p>'
+    return p, content
 
 
 def __agg_time_rank_by_day(source):
@@ -625,7 +661,153 @@ def graph_two_games_weekly(source,
                  ys=[graph[name].values for name in graph],
                  line_color=my_palette,
                  line_width=2)
-    return p
+    # TODO: replace this with meaningful content
+    content = '<p></p>'
+    return p, content
+
+
+def need_to_play(source, complete, num_games=5):
+    '''
+    This returns a list of games that have not been completed and have
+    not been played in the last 60 days.  Prints titles to console, with
+    a heading "Consider playing:"
+
+    Returns
+    -------
+    been_a_while : DataFrame
+        Summary of games that haven't been played recently.  Fields below.
+
+        title : object (str)
+            Title of game
+        date : datetime64[ns]
+            Date last played
+        dow : object (str)
+            Day of week last played
+        minutes_played : int64
+            Cumulative minutes played for title
+        hours_played : float64
+            Cumulative hours played for title
+        rank : float64
+            Overall rank by time played
+        complete : bool
+            Indicates whether game has been completed (true) or not (false)
+    '''
+    last_played = last_played_game(source)
+    hrs_played = __agg_total_time_played(source)
+    # merge frames (inner join fine, both frames have the same 1-1 titles)
+    been_a_while = last_played.merge(hrs_played, on='title')
+    # narrow the list to games played longer than 2 months ago
+    current_date = datetime.now()
+    two_months_back = current_date - pd.Timedelta(days=60)
+    been_a_while = been_a_while[been_a_while['date'] <= two_months_back]
+    # check if game has been completed
+    been_a_while = been_a_while.merge(complete, on='title')
+    been_a_while = been_a_while[been_a_while['complete'] == False]
+    been_a_while = been_a_while.sort_values(by='rank').head(num_games)
+
+    # adapt this to string, return
+    '''
+    print('\nConsider playing:')
+    title_list = been_a_while['title'].tolist()
+    print("\n".join(title_list))
+    '''
+    title_list = been_a_while['title'].tolist()
+    playlist = '\nConsider playing: ' + ' - '.join(title_list)
+    return playlist
+
+
+def last_played_game(source):
+    '''
+    Calculates the last played date of each game
+
+    Returns
+    -------
+    last_played_by_game : DataFrame
+        Summary of last played dates by game.  Fields below.
+
+        title : object (str)
+            Title of game
+        date : datetime64[ns]
+            Date game was last played
+        dow : object (str)
+            Day of week game was last played
+    '''
+    last_played_by_game = (source.groupby('title',
+                                          as_index=False)
+                           .max()[['title', 'date']])
+    last_played_by_game = last_played_by_game.sort_values('date')
+    last_played_by_game['dow'] = (last_played_by_game['date']
+                                  .dt.weekday_name)
+    return last_played_by_game
+
+
+def single_game(source, complete, title):
+    content = game_completed(complete, title)
+    time, p = single_game_history(source, title)
+    content = content + ' ' + time
+    return p, content
+
+
+def game_completed(completed, game_title):
+    df = completed[completed['title'] == game_title]
+    game_complete = df['complete'].values[0]
+    if game_complete:
+        # removes time from date
+        date_complete = str(df['date_completed'].values[0])[:10]
+        complete_status = (game_title + ' was completed on '
+                           + date_complete)
+    else:
+        complete_status = (game_title
+                           + ' has not been completed yet.')
+    return complete_status
+
+
+def single_game_history(source, game_title):
+    df = source[source['title'] == game_title]
+    # add total hours spent playing game
+    total_hours = df['hours_played'].sum()
+    playtime = ('Played for ' + str("{0:.2f}".format(total_hours))
+                + ' hours.')
+    # create date range for graph
+    # make range start from the 1st of the month on the min side
+    min_date = df['date'].min().strftime('%Y-%m-01')
+    date_range = pd.DataFrame(pd.date_range(min_date, df['date'].max()))
+    date_range.columns = ['date']
+    # format date shorter for graph (ax object?)
+    # plt.locator_params(axis='x', nbins=10)
+    df = pd.merge(df, date_range, how='right',
+                  on='date').sort_values('date').reset_index()
+    # get positions of start of each month, name/year of month
+    locs = df[df['date'].dt.day == 1].index
+    # remove time from datetime
+    labels = (df[df['date'].dt.day == 1]['date'].values
+              .astype('datetime64[D]'))
+    graph = df[['date', 'hours_played']]  # .set_index('date')
+    # TODO: add bokeh plot and return
+    source = ColumnDataSource(graph)
+    # y_range = list(set(graph['title']))
+    title = 'Hours Played'
+    x_range = graph['date']
+    top = graph['hours_played']
+
+    p = figure(plot_height=300,
+               sizing_mode='scale_width',
+               # x_range=x_range,
+               title=title)
+    p.vbar(x='date',
+           source=source,
+           # right='days',
+           width=.5,
+           top='hours_played',
+           line_color='#8e8d7d',
+           fill_color='#8e8d7d')
+    '''
+    ax = df.plot.bar(title='Hours Played')
+    plt.xticks(locs, labels)
+    ax.set_xlabel('date played')
+    ax.set_ylabel('hours')
+    '''
+    return playtime, p
 
 
 @app.route('/music/')
