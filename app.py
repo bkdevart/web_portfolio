@@ -865,7 +865,7 @@ def single_game_streaks(source, game_title):
         max_end = streak_ranges[streak_ranges['rank'] == 1][['end']].values
         streak_output = str(len(streak_ranges)) + ' streak(s).  '
         # fix print out summary of streaks - maximum, total num, etc
-        max_days = int(max_days[0][0] / np.timedelta64(1, 'D'))
+        max_days = int(max_days[0][0] / np.timedelta64(1, 'D')) + 1
         max_start = (pd.to_datetime(str(max_start[0][0]))
                      .strftime('%m-%d-%Y'))
         max_end = (pd.to_datetime(str(max_end[0][0]))
