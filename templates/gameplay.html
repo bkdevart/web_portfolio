@@ -22,22 +22,32 @@
     </p>
     <form action="/gameplay/">
     <select name="title_select">
+
     	{% for title in titles %}
+        <div>
     		{% if title == current_title %}
     			<option selected value="{{ title }}">{{ title }}</option>
     		{% else %}
     			<option value="{{ title }}">{{ title }}</option>
     		{% endif %}
+        </div>
     	{% endfor %}
+
     </select>
     <input type="submit">
     </form>
+    <div class="grid">
     {% for plot in dynamic %}
+      <div>
       {{plot[0] | safe}}
+      </div>
+      <div>
       {% for part in plot[1] %}
         {{part | safe}}
       {% endfor %}
+      </div>
     {% endfor %}
+    </div>
     <!-- end single game view -->
     <!-- ==== START DASHBOARD ====-->
     <h2>All Games</h2>

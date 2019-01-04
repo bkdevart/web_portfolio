@@ -172,8 +172,9 @@ def game_of_the_week(source_data, num_weeks=16):
                                [['week_start', 'hours_played', 'title']],
                                on=['week_start', 'hours_played'],
                                how='left'))
-
-    graph = weekly_top_games[['title', 'hours_played']].tail(num_weeks)
+    weekly_top_games = weekly_top_games.sort_values(['week_start'],
+                                                    ascending=False)
+    graph = weekly_top_games[['title', 'hours_played']].head(num_weeks)
     # plot graph df with bokeh
     source = ColumnDataSource(graph)
     y_range = list(set(graph['title']))
@@ -796,10 +797,12 @@ def single_game_history(source, game_title):
     top = graph['hours_played']
     # x_range = list(set(graph['date_str']))
 
-    p = figure(plot_height=300,
+    p = figure(plot_height=200,
                sizing_mode='scale_width',
                x_axis_type='datetime',
-               title=title)
+               title=title,
+               toolbar_location='above',
+               tools='pan,wheel_zoom,box_zoom,reset')
     p.vbar(x='date',
            source=source,
            width=2,
@@ -897,20 +900,24 @@ def single_game_streaks(source, game_title):
         graph = all_days.join(graph_data, how='left').reset_index()
         graph.columns = ['date', 'played']
         # graph_data_final.plot(title='Gameplay Streaks')
-        # TODO: add bokeh graph, return plot, content
-        title = 'Gameplay Streaks'
+        # add bokeh graph, return plot, content
+        title = game_title + ' Gameplay Streaks'
         source = ColumnDataSource(graph)
         # num_lines = len(graph.columns)
 
-        p = figure(plot_height=300,
+        p = figure(plot_height=100,
                    sizing_mode='scale_width',
                    title=title,
-                   x_axis_type='datetime')
+                   x_axis_type='datetime',
+                   toolbar_location='above',
+                   tools='pan,wheel_zoom,box_zoom,reset'
+                   )
         p.line(source=source,
                x='date',
                y='played',
                line_color='#8e8d7d',
                line_width=2)
+        p.yaxis.visible = False
     else:
         streak_output = 'No streaks.'
         p = ['','']
