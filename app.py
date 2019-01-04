@@ -802,13 +802,18 @@ def single_game_history(source, game_title):
                x_axis_type='datetime',
                title=title,
                toolbar_location='above',
-               tools='pan,wheel_zoom,box_zoom,reset')
+               tools='box_zoom,reset')
     p.vbar(x='date',
            source=source,
            width=2,
            top='hours_played',
            line_color='#8e8d7d',
            fill_color='#8e8d7d')
+    p.axis.major_label_text_color = '#8e8d7d'
+    p.axis.axis_line_color = '#8e8d7d'
+    p.axis.major_tick_line_color = '#8e8d7d'
+    p.axis.minor_tick_line_color = '#8e8d7d'
+    p.title.text_color = '#8e8d7d'
     return playtime, p
 
 
@@ -910,7 +915,7 @@ def single_game_streaks(source, game_title):
                    title=title,
                    x_axis_type='datetime',
                    toolbar_location='above',
-                   tools='pan,wheel_zoom,box_zoom,reset'
+                   tools='box_zoom,reset'
                    )
         p.line(source=source,
                x='date',
@@ -918,6 +923,11 @@ def single_game_streaks(source, game_title):
                line_color='#8e8d7d',
                line_width=2)
         p.yaxis.visible = False
+        p.axis.major_label_text_color = '#8e8d7d'
+        p.axis.axis_line_color = '#8e8d7d'
+        p.axis.major_tick_line_color = '#8e8d7d'
+        p.axis.minor_tick_line_color = '#8e8d7d'
+        p.title.text_color = '#8e8d7d'
     else:
         streak_output = 'No streaks.'
         p = ['','']
