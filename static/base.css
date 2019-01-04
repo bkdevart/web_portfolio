@@ -57,13 +57,27 @@ form {
 
 main {
 	background-color: #8e8d7d;
-	padding: 1em 3em 1em 1em;
+	padding: 1em 1em 1em 1em;
 	color: #ffffff;
 	font-family: sans-serif;
 }
 
 main a {
 	color: #ffffff
+}
+
+main h1 {
+	background-color: #acd1e0;
+	color: #8e8d7d;
+	padding: 1em;
+	font-size: 2em;
+}
+
+main h2 {
+	background-color: #acd1e0;
+	color: #8e8d7d;
+	padding: 1em;
+	font-size: 1.5em;
 }
 
 footer {
