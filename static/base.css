@@ -3,6 +3,7 @@
 	background-color: #acd1e0; /* nav bar color */
 	overflow: hidden; /* Contain links and clip any overflow */
 	padding: 0;
+	font-size: 2em;
 }
 
 /*** Nav Bar Links ***/
