@@ -36,6 +36,11 @@ def index():
     return render_template('index.html')
 
 
+@app.route('/art/')
+def art():
+    return render_template('art.html')
+
+
 @app.route('/gameplay/')
 def gameplay():
     # init dashboard element lists
