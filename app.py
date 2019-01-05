@@ -172,8 +172,9 @@ def game_of_the_week(source_data, num_weeks=16):
                                [['week_start', 'hours_played', 'title']],
                                on=['week_start', 'hours_played'],
                                how='left'))
-
-    graph = weekly_top_games[['title', 'hours_played']].tail(num_weeks)
+    weekly_top_games = weekly_top_games.sort_values(['week_start'],
+                                                    ascending=False)
+    graph = weekly_top_games[['title', 'hours_played']].head(num_weeks)
     # plot graph df with bokeh
     source = ColumnDataSource(graph)
     y_range = list(set(graph['title']))
@@ -188,10 +189,10 @@ def game_of_the_week(source_data, num_weeks=16):
               height=.5,
               line_color='#8e8d7d',
               fill_color='#8e8d7d')
-    most_recent_week = weekly_top_games['week_start'].dt.date.iloc[-1]
-    curr_top_game = weekly_top_games['title'].iloc[-1]
-    # TODO: convert this line to a string, figure out how display in HTML
-    top_game = f'Top Game for Week of {most_recent_week}: {curr_top_game}'
+    most_recent_week = weekly_top_games['week_start'].dt.date.iloc[0]
+    curr_top_game = weekly_top_games['title'].iloc[0]
+    top_game = f'Top Game for Week of {most_recent_week}: <em>{curr_top_game}</em>'
+    top_game = '<h3>Weekly Winner</h3>' + top_game
     return plot, top_game
 
 
@@ -280,7 +281,7 @@ def check_streaks(source, top_games=10):
     # if current_streak empty, put 'None' in list
     content = '\nCurrent streak(s): '
     if len(current_streak) == 0:
-        content = content + 'None'
+        content = content + '<em>None</em>'
     else:
         current_streak['days'] = current_streak['streak_num'] + 1
         current_streak = current_streak[['title', 'days']]
@@ -308,6 +309,7 @@ def check_streaks(source, top_games=10):
            height=.5,
            line_color='#8e8d7d',
            fill_color='#8e8d7d')
+    content = '<h3>Streaks</h3>' + content
     return p, content
 
 
@@ -712,15 +714,11 @@ def need_to_play(source, complete, num_games=5):
     been_a_while = been_a_while.merge(complete, on='title')
     been_a_while = been_a_while[been_a_while['complete'] == False]
     been_a_while = been_a_while.sort_values(by='rank').head(num_games)
-
+    # TODO: add hours, days since last played
     # adapt this to string, return
-    '''
-    print('\nConsider playing:')
-    title_list = been_a_while['title'].tolist()
-    print("\n".join(title_list))
-    '''
     title_list = been_a_while['title'].tolist()
     playlist = '\nConsider playing: ' + ' - '.join(title_list)
+    playlist = '<h3>Recent and Past</h3>' + playlist
     return playlist
 
 
@@ -762,11 +760,12 @@ def game_completed(completed, game_title):
     if game_complete:
         # removes time from date
         date_complete = str(df['date_completed'].values[0])[:10]
-        complete_status = (game_title + ' was completed on '
-                           + date_complete + '.')
+        complete_status = (game_title + ' was <em>completed</em> on <em>'
+                           + date_complete + '</em>.')
     else:
         complete_status = (game_title
-                           + ' has not been completed yet.')
+                           + ' has <em>not</em> been <em>completed</em> yet.')
+    complete_status = '<h3>Hours</h3>' + complete_status
     return complete_status
 
 
@@ -774,8 +773,8 @@ def single_game_history(source, game_title):
     df = source[source['title'] == game_title]
     # add total hours spent playing game
     total_hours = df['hours_played'].sum()
-    playtime = ('Played for ' + str("{0:.2f}".format(total_hours))
-                + ' hours.')
+    playtime = ('Played for <em>' + str("{0:.2f}".format(total_hours))
+                + '</em> hours.')
     # create date range for graph
     # make range start from the 1st of the month on the min side
     min_date = df['date'].min().strftime('%Y-%m-01')
@@ -796,16 +795,23 @@ def single_game_history(source, game_title):
     top = graph['hours_played']
     # x_range = list(set(graph['date_str']))
 
-    p = figure(plot_height=300,
+    p = figure(plot_height=200,
                sizing_mode='scale_width',
                x_axis_type='datetime',
-               title=title)
+               title=title,
+               toolbar_location='above',
+               tools='box_zoom,reset')
     p.vbar(x='date',
            source=source,
            width=2,
            top='hours_played',
            line_color='#8e8d7d',
            fill_color='#8e8d7d')
+    p.axis.major_label_text_color = '#8e8d7d'
+    p.axis.axis_line_color = '#8e8d7d'
+    p.axis.major_tick_line_color = '#8e8d7d'
+    p.axis.minor_tick_line_color = '#8e8d7d'
+    p.title.text_color = '#8e8d7d'
     return playtime, p
 
 
@@ -863,18 +869,18 @@ def single_game_streaks(source, game_title):
         max_start = (streak_ranges[streak_ranges['rank'] == 1][['start']]
                      .values)
         max_end = streak_ranges[streak_ranges['rank'] == 1][['end']].values
-        streak_output = str(len(streak_ranges)) + ' streak(s).  '
+        streak_output = '<em>' + str(len(streak_ranges)) + '</em> streak(s).  '
         # fix print out summary of streaks - maximum, total num, etc
-        max_days = int(max_days[0][0] / np.timedelta64(1, 'D'))
+        max_days = int(max_days[0][0] / np.timedelta64(1, 'D')) + 1
         max_start = (pd.to_datetime(str(max_start[0][0]))
                      .strftime('%m-%d-%Y'))
         max_end = (pd.to_datetime(str(max_end[0][0]))
                      .strftime('%m-%d-%Y'))
         # TODO: modify to display current streaks if they are longest
         streak_output = (streak_output + 'The longest streak '
-                         f'played was for {max_days} days, ' +
-                         f'starting on {max_start} and ' +
-                         f'running until {max_end}.')
+                         f'played was for <em>{max_days}</em> days, ' +
+                         f'starting on <em>{max_start}</em> and ' +
+                         f'running until <em>{max_end}</em>.')
 
         # create graph of streaks and display
         streak_dates = pd.Series()
@@ -897,23 +903,33 @@ def single_game_streaks(source, game_title):
         graph = all_days.join(graph_data, how='left').reset_index()
         graph.columns = ['date', 'played']
         # graph_data_final.plot(title='Gameplay Streaks')
-        # TODO: add bokeh graph, return plot, content
-        title = 'Gameplay Streaks'
+        # add bokeh graph, return plot, content
+        title = game_title + ' Gameplay Streaks'
         source = ColumnDataSource(graph)
         # num_lines = len(graph.columns)
 
-        p = figure(plot_height=300,
+        p = figure(plot_height=200,
                    sizing_mode='scale_width',
                    title=title,
-                   x_axis_type='datetime')
+                   x_axis_type='datetime',
+                   toolbar_location='above',
+                   tools='box_zoom,reset'
+                   )
         p.line(source=source,
                x='date',
                y='played',
                line_color='#8e8d7d',
                line_width=2)
+        p.yaxis.visible = False
+        p.axis.major_label_text_color = '#8e8d7d'
+        p.axis.axis_line_color = '#8e8d7d'
+        p.axis.major_tick_line_color = '#8e8d7d'
+        p.axis.minor_tick_line_color = '#8e8d7d'
+        p.title.text_color = '#8e8d7d'
     else:
         streak_output = 'No streaks.'
         p = ['','']
+    streak_output = '<h3>Streaks</h3>' + streak_output
     return p, streak_output
 
 @app.route('/music/')

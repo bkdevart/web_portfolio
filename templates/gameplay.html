@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% set active_page = "gameplay" %}
-{% block title %}Gameplay{% endblock %}
+{% block title %}Games{% endblock %}
 
 <!-- ==== START MAIN CONTENT ====-->
 {% block main %}
@@ -16,41 +16,54 @@
       <a href="https://github.com/bkdevart/web_portfolio">GitHub</a>.
     </p>
     <!-- ==== START SINGLE GAME VIEW ==== -->
-    <h2>Single Game</h2>
+    <h2>Single Game Views</h2>
     <p>
-      Choose a game from the dropdown below and select submit.
+      Choose a game from the dropdown below.
     </p>
     <form action="/gameplay/">
-    <select name="title_select">
+    <select name="title_select" onchange="this.form.submit()">
+
     	{% for title in titles %}
+        <div>
     		{% if title == current_title %}
-    			<option selected value="{{ title }}">{{ title }}</option>
+    			<option selected value="{{ title }}">{{ title }} &#9660; </option>
     		{% else %}
     			<option value="{{ title }}">{{ title }}</option>
     		{% endif %}
+        </div>
     	{% endfor %}
     </select>
-    <input type="submit">
+
     </form>
+    <div class="grid">
     {% for plot in dynamic %}
+      <div>
       {{plot[0] | safe}}
+      </div>
+      <div>
       {% for part in plot[1] %}
         {{part | safe}}
       {% endfor %}
+      </div>
     {% endfor %}
+    </div>
     <!-- end single game view -->
     <!-- ==== START DASHBOARD ====-->
-    <h2>All Games</h2>
-    {% for plot in plots %}
+    <h2>All Games Views</h2>
     <div class="col">
+    {% for plot in plots %}
       <!-- content part -->
+      <div class="summary">
       {{plot[0] | safe}}
+      </div>
       <!-- graph part -->
+      <div class="chart">
       {% for part in plot[1] %}
-        <div class="row">{{part | safe }}</div>
+        {{part | safe }}
       {% endfor %}
-    </div>
+      </div>
     {% endfor %}
+    </div>
     <!-- end graphs -->
   </article>
   <!-- ==== START HOW-TO CONTENT ==== -->
