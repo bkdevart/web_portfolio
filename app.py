@@ -189,10 +189,10 @@ def game_of_the_week(source_data, num_weeks=16):
               height=.5,
               line_color='#8e8d7d',
               fill_color='#8e8d7d')
-    most_recent_week = weekly_top_games['week_start'].dt.date.iloc[-1]
-    curr_top_game = weekly_top_games['title'].iloc[-1]
-    # TODO: convert this line to a string, figure out how display in HTML
-    top_game = f'Top Game for Week of {most_recent_week}: {curr_top_game}'
+    most_recent_week = weekly_top_games['week_start'].dt.date.iloc[0]
+    curr_top_game = weekly_top_games['title'].iloc[0]
+    top_game = f'Top Game for Week of {most_recent_week}: <em>{curr_top_game}</em>'
+    top_game = '<h3>Weekly Winner</h3>' + top_game
     return plot, top_game
 
 
@@ -281,7 +281,7 @@ def check_streaks(source, top_games=10):
     # if current_streak empty, put 'None' in list
     content = '\nCurrent streak(s): '
     if len(current_streak) == 0:
-        content = content + 'None'
+        content = content + '<em>None</em>'
     else:
         current_streak['days'] = current_streak['streak_num'] + 1
         current_streak = current_streak[['title', 'days']]
@@ -309,6 +309,7 @@ def check_streaks(source, top_games=10):
            height=.5,
            line_color='#8e8d7d',
            fill_color='#8e8d7d')
+    content = '<h3>Streaks</h3>' + content
     return p, content
 
 
@@ -713,15 +714,11 @@ def need_to_play(source, complete, num_games=5):
     been_a_while = been_a_while.merge(complete, on='title')
     been_a_while = been_a_while[been_a_while['complete'] == False]
     been_a_while = been_a_while.sort_values(by='rank').head(num_games)
-
+    # TODO: add hours, days since last played
     # adapt this to string, return
-    '''
-    print('\nConsider playing:')
-    title_list = been_a_while['title'].tolist()
-    print("\n".join(title_list))
-    '''
     title_list = been_a_while['title'].tolist()
     playlist = '\nConsider playing: ' + ' - '.join(title_list)
+    playlist = '<h3>Recent and Past</h3>' + playlist
     return playlist
 
 

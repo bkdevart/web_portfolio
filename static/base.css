@@ -32,7 +32,7 @@
 	padding: .5em 1em;
 }
 
-/*** Grid layout for graphs ***/
+/*** Grid layout for single game graphs ***/
 .grid {
 	display: grid;
 	grid-template-columns: 1fr 3fr;
@@ -51,6 +51,24 @@
 	color: #8e8d7d;
 	*/
 }
+
+/*** Grid layout for all game graphs ***/
+.col {
+	display: grid;
+	grid-template-columns: 1fr 3fr;
+	grid-auto-rows: minmax(50px, auto);
+	grid-gap: 1em;
+}
+
+.col div {
+	/*padding: 1em;*/
+}
+
+.col > div:nth-child(odd) {
+	/*background:#ffffff;*/
+	padding: 1em;
+}
+
 
 main {
 	background-color: #8e8d7d;
@@ -75,6 +93,10 @@ main h2 {
 	color: #8e8d7d;
 	padding: .25em 1em .25em 1em;
 	font-size: 1.5em;
+}
+
+main h3 {
+	font-size: 1.4em;
 }
 
 main em {

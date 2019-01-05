@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% set active_page = "gameplay" %}
-{% block title %}Gameplay{% endblock %}
+{% block title %}Games{% endblock %}
 
 <!-- ==== START MAIN CONTENT ====-->
 {% block main %}
@@ -50,16 +50,20 @@
     <!-- end single game view -->
     <!-- ==== START DASHBOARD ====-->
     <h2>All Games Views</h2>
-    {% for plot in plots %}
     <div class="col">
+    {% for plot in plots %}
       <!-- content part -->
+      <div>
       {{plot[0] | safe}}
+      </div>
       <!-- graph part -->
+      <div>
       {% for part in plot[1] %}
-        <div class="row">{{part | safe }}</div>
+        {{part | safe }}
       {% endfor %}
-    </div>
+      </div>
     {% endfor %}
+    </div>
     <!-- end graphs -->
   </article>
   <!-- ==== START HOW-TO CONTENT ==== -->
