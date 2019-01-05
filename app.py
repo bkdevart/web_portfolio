@@ -763,11 +763,12 @@ def game_completed(completed, game_title):
     if game_complete:
         # removes time from date
         date_complete = str(df['date_completed'].values[0])[:10]
-        complete_status = (game_title + ' was completed on '
-                           + date_complete + '.')
+        complete_status = (game_title + ' was <em>completed</em> on <em>'
+                           + date_complete + '</em>.')
     else:
         complete_status = (game_title
-                           + ' has not been completed yet.')
+                           + ' has <em>not</em> been <em>completed</em> yet.')
+    complete_status = '<h3>Hours</h3>' + complete_status
     return complete_status
 
 
@@ -775,8 +776,8 @@ def single_game_history(source, game_title):
     df = source[source['title'] == game_title]
     # add total hours spent playing game
     total_hours = df['hours_played'].sum()
-    playtime = ('Played for ' + str("{0:.2f}".format(total_hours))
-                + ' hours.')
+    playtime = ('Played for <em>' + str("{0:.2f}".format(total_hours))
+                + '</em> hours.')
     # create date range for graph
     # make range start from the 1st of the month on the min side
     min_date = df['date'].min().strftime('%Y-%m-01')
@@ -871,7 +872,7 @@ def single_game_streaks(source, game_title):
         max_start = (streak_ranges[streak_ranges['rank'] == 1][['start']]
                      .values)
         max_end = streak_ranges[streak_ranges['rank'] == 1][['end']].values
-        streak_output = str(len(streak_ranges)) + ' streak(s).  '
+        streak_output = '<em>' + str(len(streak_ranges)) + '</em> streak(s).  '
         # fix print out summary of streaks - maximum, total num, etc
         max_days = int(max_days[0][0] / np.timedelta64(1, 'D')) + 1
         max_start = (pd.to_datetime(str(max_start[0][0]))
@@ -880,9 +881,9 @@ def single_game_streaks(source, game_title):
                      .strftime('%m-%d-%Y'))
         # TODO: modify to display current streaks if they are longest
         streak_output = (streak_output + 'The longest streak '
-                         f'played was for {max_days} days, ' +
-                         f'starting on {max_start} and ' +
-                         f'running until {max_end}.')
+                         f'played was for <em>{max_days}</em> days, ' +
+                         f'starting on <em>{max_start}</em> and ' +
+                         f'running until <em>{max_end}</em>.')
 
         # create graph of streaks and display
         streak_dates = pd.Series()
@@ -910,7 +911,7 @@ def single_game_streaks(source, game_title):
         source = ColumnDataSource(graph)
         # num_lines = len(graph.columns)
 
-        p = figure(plot_height=100,
+        p = figure(plot_height=200,
                    sizing_mode='scale_width',
                    title=title,
                    x_axis_type='datetime',
@@ -931,6 +932,7 @@ def single_game_streaks(source, game_title):
     else:
         streak_output = 'No streaks.'
         p = ['','']
+    streak_output = '<h3>Streaks</h3>' + streak_output
     return p, streak_output
 
 @app.route('/music/')

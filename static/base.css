@@ -76,6 +76,11 @@ main h2 {
 	font-size: 1.5em;
 }
 
+main em {
+	font-size: 1.25em;
+	font-weight: bold;
+}
+
 footer {
   background-color: #acd1e0;
   padding: 1em ;
@@ -133,6 +138,7 @@ select {
 	font-size: 1.25em;
 	padding: 5px;
 	font-weight: bold;
+	border-style: hidden;
 }
 
 /*** RESPONSIVE STYLING ***/
