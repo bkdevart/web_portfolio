@@ -31,10 +31,6 @@
 	padding: .5em 1em;
 }
 
-form {
-	padding: 1em;
-}
-
 /*** Grid layout for graphs ***/
 .grid {
 	display: grid;
@@ -69,14 +65,14 @@ main a {
 main h1 {
 	background-color: #acd1e0;
 	color: #8e8d7d;
-	padding: 1em;
+	padding: .25em 1em .25em 1em;
 	font-size: 2em;
 }
 
 main h2 {
 	background-color: #acd1e0;
 	color: #8e8d7d;
-	padding: 1em;
+	padding: .25em 1em .25em 1em;
 	font-size: 1.5em;
 }
 
@@ -125,6 +121,10 @@ tr:nth-child(odd) {
 }
 
 /* Style The Dropdown Menu and Subimt Button */
+form {
+	padding: 1em;
+}
+
 select {
 	-webkit-appearance: none;
   position: relative;
