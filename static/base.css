@@ -64,9 +64,14 @@
 	/*padding: 1em;*/
 }
 
-.col > div:nth-child(odd) {
-	/*background:#ffffff;*/
+.chart {
+	background:#ffffff;
 	padding: 1em;
+	/*grid-template-columns: 2/1;*/
+}
+
+.summary {
+	/*background:#ffffff;*/
 }
 
 

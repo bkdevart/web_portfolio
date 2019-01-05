@@ -53,11 +53,11 @@
     <div class="col">
     {% for plot in plots %}
       <!-- content part -->
-      <div>
+      <div class="summary">
       {{plot[0] | safe}}
       </div>
       <!-- graph part -->
-      <div>
+      <div class="chart">
       {% for part in plot[1] %}
         {{part | safe }}
       {% endfor %}
