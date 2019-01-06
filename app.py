@@ -178,12 +178,16 @@ def game_of_the_week(source_data, num_weeks=16):
                                [['week_start', 'hours_played', 'title']],
                                on=['week_start', 'hours_played'],
                                how='left'))
+    weekly_top_games['date_title'] = (weekly_top_games['week_start']
+                                      .dt.strftime('%Y-%m-%d') + ': '
+                                      + weekly_top_games['title'])
     weekly_top_games = weekly_top_games.sort_values(['week_start'],
                                                     ascending=False)
-    graph = weekly_top_games[['title', 'hours_played']].head(num_weeks)
+    graph = weekly_top_games[['date_title',
+                              'hours_played']].head(num_weeks)
     # plot graph df with bokeh
     source = ColumnDataSource(graph)
-    y_range = sorted(set(graph['title']))
+    y_range = sorted(set(graph['date_title']))
     # y_range = graph['title'].values.tolist()
 
     plot = figure(plot_height=300,
@@ -192,12 +196,18 @@ def game_of_the_week(source_data, num_weeks=16):
                   title='Top Games Hours Per Week',
                   toolbar_location='above',
                   tools='box_zoom,reset')
-    plot.hbar(y='title',
+    plot.hbar(y='date_title',
               source=source,
               right='hours_played',
               height=.5,
               line_color='#8e8d7d',
               fill_color='#8e8d7d')
+    plot.toolbar_location = None
+    plot.axis.major_label_text_color = '#8e8d7d'
+    plot.axis.axis_line_color = '#8e8d7d'
+    plot.axis.major_tick_line_color = '#8e8d7d'
+    plot.axis.minor_tick_line_color = '#8e8d7d'
+    plot.title.text_color = '#8e8d7d'
     most_recent_week = weekly_top_games['week_start'].dt.date.iloc[0]
     most_recent_week = most_recent_week.strftime('%m-%d-%Y')
     curr_top_game = weekly_top_games['title'].iloc[0]
@@ -327,6 +337,12 @@ def check_streaks(source, top_games=10):
            height=.5,
            line_color='#8e8d7d',
            fill_color='#8e8d7d')
+    p.toolbar_location = None
+    p.axis.major_label_text_color = '#8e8d7d'
+    p.axis.axis_line_color = '#8e8d7d'
+    p.axis.major_tick_line_color = '#8e8d7d'
+    p.axis.minor_tick_line_color = '#8e8d7d'
+    p.title.text_color = '#8e8d7d'
     content = '<h3>Streaks</h3>' + content
     return p, content
 
@@ -375,11 +391,19 @@ def line_weekly_hours(source):
     p = figure(plot_height=300,
                sizing_mode='scale_width',
                title=title,
-               x_axis_type='datetime')
+               x_axis_type='datetime',
+               tools='box_zoom, reset',
+               toolbar_location='above')
     p.multi_line(xs=[graph.index.values]*num_lines,
                  ys=[graph[name].values for name in graph],
                  line_color=my_palette,
                  line_width=2)
+    p.toolbar.logo = None
+    p.axis.major_label_text_color = '#8e8d7d'
+    p.axis.axis_line_color = '#8e8d7d'
+    p.axis.major_tick_line_color = '#8e8d7d'
+    p.axis.minor_tick_line_color = '#8e8d7d'
+    p.title.text_color = '#8e8d7d'
     # TODO: replace this with meaningful content
     content = '<p></p>'
     return p, content
@@ -443,13 +467,21 @@ def bar_graph_top(source, num_games=10):
     p = figure(plot_height=300,
                sizing_mode='scale_width',
                y_range=y_range,
-               title=title)
+               title=title,
+               toolbar_location='above',
+               tools='box_zoom,reset')
     p.hbar(y='title',
            source=source,
            right='hours_played',
            height=.5,
            line_color='#8e8d7d',
            fill_color='#8e8d7d')
+    p.toolbar_location = None
+    p.axis.major_label_text_color = '#8e8d7d'
+    p.axis.axis_line_color = '#8e8d7d'
+    p.axis.major_tick_line_color = '#8e8d7d'
+    p.axis.minor_tick_line_color = '#8e8d7d'
+    p.title.text_color = '#8e8d7d'
     # TODO: replace this with meaningful content
     content = '<p></p>'
     return p, content
@@ -580,11 +612,20 @@ def line_graph_top(source, rank_num=5):
     p = figure(plot_height=300,
                sizing_mode='scale_width',
                title=title,
-               x_axis_type='datetime')
+               x_axis_type='datetime',
+               toolbar_location='above',
+               tools='box_zoom,reset'
+               )
     p.multi_line(xs=[graph.index.values]*num_lines,
                  ys=[graph[name].values for name in graph],
                  line_color=my_palette,
                  line_width=2)
+    p.toolbar.logo = None
+    p.axis.major_label_text_color = '#8e8d7d'
+    p.axis.axis_line_color = '#8e8d7d'
+    p.axis.major_tick_line_color = '#8e8d7d'
+    p.axis.minor_tick_line_color = '#8e8d7d'
+    p.title.text_color = '#8e8d7d'
     # TODO: replace this with meaningful content
     content = '<p></p>'
     return p, content
@@ -690,11 +731,19 @@ def graph_two_games_weekly(source,
     p = figure(plot_height=300,
                sizing_mode='scale_width',
                title=title,
-               x_axis_type='datetime')
+               x_axis_type='datetime',
+               toolbar_location='above',
+               tools='box_zoom,reset')
     p.multi_line(xs=[graph.index.values]*num_lines,
                  ys=[graph[name].values for name in graph],
                  line_color=my_palette,
                  line_width=2)
+    p.toolbar.logo = None
+    p.axis.major_label_text_color = '#8e8d7d'
+    p.axis.axis_line_color = '#8e8d7d'
+    p.axis.major_tick_line_color = '#8e8d7d'
+    p.axis.minor_tick_line_color = '#8e8d7d'
+    p.title.text_color = '#8e8d7d'
     # TODO: replace this with meaningful content
     content = '<p></p>'
     return p, content
@@ -848,6 +897,7 @@ def single_game_history(source, game_title):
     p.axis.major_tick_line_color = '#8e8d7d'
     p.axis.minor_tick_line_color = '#8e8d7d'
     p.title.text_color = '#8e8d7d'
+    p.toolbar.logo = None
     return playtime, p
 
 
@@ -962,6 +1012,7 @@ def single_game_streaks(source, game_title):
         p.axis.major_tick_line_color = '#8e8d7d'
         p.axis.minor_tick_line_color = '#8e8d7d'
         p.title.text_color = '#8e8d7d'
+        p.toolbar.logo = None
     else:
         streak_output = 'No streaks.'
         p = ['','']
