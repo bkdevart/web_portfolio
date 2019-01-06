@@ -8,6 +8,7 @@ from flask import Flask, render_template, request
 # graph imports
 from bokeh.plotting import figure, output_file, show
 from bokeh.models import ColumnDataSource, CustomJS, Slider
+from bokeh.models.tools import HoverTool
 from bokeh.embed import components
 from bokeh.palettes import RdBu, Category20
 from bokeh.transform import cumsum
@@ -182,12 +183,15 @@ def game_of_the_week(source_data, num_weeks=16):
     graph = weekly_top_games[['title', 'hours_played']].head(num_weeks)
     # plot graph df with bokeh
     source = ColumnDataSource(graph)
-    y_range = list(set(graph['title']))
+    y_range = sorted(set(graph['title']))
+    # y_range = graph['title'].values.tolist()
 
     plot = figure(plot_height=300,
                   sizing_mode='scale_width',
                   y_range=y_range,
-                  title='Hours Per Week')
+                  title='Top Games Hours Per Week',
+                  toolbar_location='above',
+                  tools='box_zoom,reset')
     plot.hbar(y='title',
               source=source,
               right='hours_played',
@@ -195,6 +199,7 @@ def game_of_the_week(source_data, num_weeks=16):
               line_color='#8e8d7d',
               fill_color='#8e8d7d')
     most_recent_week = weekly_top_games['week_start'].dt.date.iloc[0]
+    most_recent_week = most_recent_week.strftime('%m-%d-%Y')
     curr_top_game = weekly_top_games['title'].iloc[0]
     top_game = f'Top Game for Week of {most_recent_week}: <em>{curr_top_game}</em>'
     top_game = '<h3>Weekly Winner</h3>' + top_game
@@ -218,11 +223,19 @@ def weekly_hours_snapshot(source, complete):
     source = ColumnDataSource(df)
     p = figure(plot_height=300,
                sizing_mode='scale_width',
-               title='Current Week Hours Distribution')
+               title='Current Week Hours Distribution',
+               toolbar_location=None,
+               # tools='pan, reset',
+               x_range=(-.5, 1.5))
     p.wedge(x=0, y=1, radius=0.4, line_color='white',
             start_angle=cumsum('angle', include_zero=True),
             end_angle=cumsum('angle'), legend='title',
             fill_color='color', source=source)
+    p.axis.visible = False
+    p.title.text_color = '#8e8d7d'
+    # p.legend.text_color = '#8e8d7d'
+    p.legend.label_text_color  = '#8e8d7d'
+    p.grid.grid_line_color = None
     return p, content
 
 
@@ -518,11 +531,17 @@ def pie_graph_top(source, num_games=10):
     source = ColumnDataSource(graph)
     p = figure(plot_height=300,
                sizing_mode='scale_width',
-               title=title)
+               title=title,
+               toolbar_location=None,
+               x_range=(-.5, 1.5))
     p.wedge(x=0, y=1, radius=0.4, line_color='white',
             start_angle=cumsum('angle', include_zero=True),
             end_angle=cumsum('angle'), legend='title',
             fill_color='color', source=source)
+    p.axis.visible = False
+    p.legend.label_text_color  = '#8e8d7d'
+    p.grid.grid_line_color = None
+    p.title.text_color = '#8e8d7d'
 
     # TODO: add slider widget
     output_file("slider.html")
@@ -763,8 +782,10 @@ def game_completed(completed, game_title):
     df = completed[completed['title'] == game_title]
     game_complete = df['complete'].values[0]
     if game_complete:
-        # removes time from date
-        date_complete = str(df['date_completed'].values[0])[:10]
+        # format time
+        date_complete = pd.to_datetime(str(df['date_completed'].values[0]))
+        date_complete = date_complete.strftime('%m-%d-%Y')
+        # date_complete = date_complete.strftime('%Y-%m-%d')
         complete_status = (game_title + ' was <em>completed</em> on <em>'
                            + date_complete + '</em>.')
     else:
@@ -778,8 +799,18 @@ def single_game_history(source, game_title):
     df = source[source['title'] == game_title]
     # add total hours spent playing game
     total_hours = df['hours_played'].sum()
-    playtime = ('Played for <em>' + str("{0:.2f}".format(total_hours))
-                + '</em> hours.')
+    avg_playtime = str("{0:.1f}"
+                       .format(df['hours_played'].mean()))
+    playtime = f'Average playtime is <em>{avg_playtime}</em> hours.'
+    playtime = playtime + ('  Played for a total of <em>'
+                + str("{0:.1f}".format(total_hours))
+                + '</em> hours,')
+    # add hours for that week (if any)
+    week_start = source['week_start'].max()
+    weekly_hours = str("{0:.1f}"
+                       .format(df[df['week_start'] == week_start]
+                       ['hours_played'].sum()))
+    playtime = playtime + f' with <em>{weekly_hours}</em> hours played this week.'
     # create date range for graph
     # make range start from the 1st of the month on the min side
     min_date = df['date'].min().strftime('%Y-%m-01')
