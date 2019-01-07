@@ -193,7 +193,7 @@ def game_of_the_week(source_data, num_weeks=16):
     plot = figure(plot_height=300,
                   sizing_mode='scale_width',
                   y_range=y_range,
-                  title='Top Games Hours Per Week',
+                  title=f'Top Games Last {num_weeks} Weeks',
                   toolbar_location='above',
                   tools='box_zoom,reset')
     plot.hbar(y='date_title',
@@ -211,8 +211,8 @@ def game_of_the_week(source_data, num_weeks=16):
     most_recent_week = weekly_top_games['week_start'].dt.date.iloc[0]
     most_recent_week = most_recent_week.strftime('%m-%d-%Y')
     curr_top_game = weekly_top_games['title'].iloc[0]
-    top_game = f'Top Game for Week of {most_recent_week}: <em>{curr_top_game}</em>'
-    top_game = '<h3>Weekly Winner</h3>' + top_game
+    top_game = f'Top game for week of {most_recent_week}: <em>{curr_top_game}</em>'
+    top_game = '<h3>Game of the Week</h3>' + top_game
     return plot, top_game
 
 
@@ -404,8 +404,17 @@ def line_weekly_hours(source):
     p.axis.major_tick_line_color = '#8e8d7d'
     p.axis.minor_tick_line_color = '#8e8d7d'
     p.title.text_color = '#8e8d7d'
-    # TODO: replace this with meaningful content
-    content = '<p></p>'
+    # TODO: show min/max of weekly and daily hours, averages
+    content = '<h3>Overall Hours</h3>'
+    avg_weekly_hrs = str("{0:.1f}".format(graph['hours_played'].mean()))
+    max_weekly_hrs = str("{0:.1f}".format(graph['hours_played'].max()))
+    min_weekly_hrs = str("{0:.1f}".format(graph['hours_played'].min()))
+    content = (content + f'<li>On average, <em>{avg_weekly_hrs}</em> hours are ' +
+                        'played per week.</li>')
+    content = (content + '<li>The highest week had <em>'
+               f'{max_weekly_hrs}</em> hours.</li>')
+    content = (content + f'<li>The lowest week had <em>'
+               f'{min_weekly_hrs}</em> hours.</li>')
     return p, content
 
 def __agg_week(source):
@@ -787,10 +796,17 @@ def need_to_play(source, complete, num_games=5):
     been_a_while = been_a_while.merge(complete, on='title')
     been_a_while = been_a_while[been_a_while['complete'] == False]
     been_a_while = been_a_while.sort_values(by='rank').head(num_games)
-    # TODO: add hours, days since last played
+    been_a_while['days_since'] = datetime.now() - been_a_while['date']
+    been_a_while['days_since'] = been_a_while['days_since'].astype('timedelta64[D]')
+    # add hours, days since last played (iterate through frame)
     # adapt this to string, return
-    title_list = been_a_while['title'].tolist()
-    playlist = '\nConsider playing: ' + ' - '.join(title_list)
+    playlist = '<em>Consider playing:</em>'
+    for index, row in been_a_while.iterrows():
+        playlist = playlist + ('<li>' + row['title'] + ' (' +
+                    str("{0:.0f}".format(row['days_since'])) +
+                    ' days since, ' +
+                    str("{0:.0f}".format(row['hours_played'])) +
+                    ' hours in)</li>')
     playlist = '<h3>Recent and Past</h3>' + playlist
     return playlist
 
@@ -853,13 +869,14 @@ def single_game_history(source, game_title):
     playtime = f'Average playtime is <em>{avg_playtime}</em> hours.'
     playtime = playtime + ('  Played for a total of <em>'
                 + str("{0:.1f}".format(total_hours))
-                + '</em> hours,')
+                + '</em> hours ')
     # add hours for that week (if any)
     week_start = source['week_start'].max()
     weekly_hours = str("{0:.1f}"
                        .format(df[df['week_start'] == week_start]
                        ['hours_played'].sum()))
-    playtime = playtime + f' with <em>{weekly_hours}</em> hours played this week.'
+    if (weekly_hours != '0.0'):
+        playtime = playtime + f' with <em>{weekly_hours}</em> hours played this week.'
     # create date range for graph
     # make range start from the 1st of the month on the min side
     min_date = df['date'].min().strftime('%Y-%m-01')
