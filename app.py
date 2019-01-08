@@ -802,7 +802,8 @@ def need_to_play(source, complete, num_games=5):
     # adapt this to string, return
     playlist = '<em>Consider playing:</em>'
     for index, row in been_a_while.iterrows():
-        playlist = playlist + ('<li>' + row['title'] + ' (' +
+        playlist = playlist + ('<li><strong>' + row['title'] +
+                    '</strong> (' +
                     str("{0:.0f}".format(row['days_since'])) +
                     ' days since, ' +
                     str("{0:.0f}".format(row['hours_played'])) +
