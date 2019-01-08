@@ -72,7 +72,7 @@
     <p>
       The data used to create this dashboard consists of two tables:
       one is a log of time spent by day on each game, and the other
-      is a record of which games have been completed.  Both are CSV
+      is a record of game metadata.  Both are CSV
       files.
     </p>
     <h2 id="game-log-overview">game_log.csv</h2>
@@ -81,11 +81,11 @@
       date, and system.
       {{game_log | safe}}
     </p>
-    <h2 id="completed-overview">completed.csv</h2>
+    <h2 id="completed-overview">game_attr.csv</h2>
     <p>
       There are three fields to this table: title, complete,
       date_completed.
-      {{completed | safe}}
+      {{game_attr_demo | safe}}
     </p>
     <h2 id="process-data">Processing the Data</h2>
     <p>

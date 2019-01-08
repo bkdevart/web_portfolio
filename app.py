@@ -49,7 +49,7 @@ def gameplay():
     dynamic = []
 
     # init source data
-    source, complete, game_log, completed = init_data()
+    source, game_attr, game_log, game_attr_demo = init_data()
     source_sample = source.head(3).to_html(index=False)
     titles = (source[['title']]
               .drop_duplicates()
@@ -64,7 +64,7 @@ def gameplay():
     plots.append((content, components(plot)))
 
     # add weekly hours distribution pie graph
-    plot, content = weekly_hours_snapshot(source, complete)
+    plot, content = weekly_hours_snapshot(source, game_attr)
     plots.append((content, components(plot)))
 
     # add top 10 streaks graph
@@ -92,7 +92,7 @@ def gameplay():
     plots.append((content, components(plot)))
 
     # single game view - hours
-    plot, content = single_game(source, complete, current_title)
+    plot, content = single_game(source, game_attr, current_title)
     dynamic.append((content, components(plot)))
 
     # single game view - streaks
@@ -104,7 +104,8 @@ def gameplay():
         dynamic.append((content, components(plot)))
 
     return render_template('gameplay.html', plots=plots,
-                           game_log=game_log, completed=completed,
+                           game_log=game_log,
+                           game_attr_demo=game_attr_demo,
                            source_sample=source_sample,
                            titles=titles,
                            current_title=current_title,
@@ -117,14 +118,14 @@ def init_data():
     '''
     THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
     game_log = os.path.join(THIS_FOLDER, 'input/game_log.csv')
-    completed = os.path.join(THIS_FOLDER, 'input/completed.csv')
+    game_attr = os.path.join(THIS_FOLDER, 'input/game_attr.csv')
     source = pd.read_csv(game_log,
                          parse_dates=['date', 'time_played'])
-    complete = pd.read_csv(completed,
+    game_attr = pd.read_csv(game_attr,
                            parse_dates=['date_completed'])
     # storing initial csv states for how-to section
     game_log = source.head(3).to_html(index=False)
-    completed = complete.head(3).to_html(index=False)
+    game_attr_demo = game_attr.head(3).to_html(index=False)
 
     # perform initial calculations
     source['minutes_played'] = ((source['time_played'].dt.hour * 60)
@@ -140,7 +141,7 @@ def init_data():
                             (source['date'].dt.dayofweek, unit='d'))
     source['month'] = source['date'].values.astype('datetime64[M]')
 
-    return source, complete, game_log, completed
+    return source, game_attr, game_log, game_attr_demo
 
 
 def game_of_the_week(source_data, num_weeks=16):
@@ -188,7 +189,6 @@ def game_of_the_week(source_data, num_weeks=16):
     # plot graph df with bokeh
     source = ColumnDataSource(graph)
     y_range = sorted(set(graph['date_title']))
-    # y_range = graph['title'].values.tolist()
 
     plot = figure(plot_height=300,
                   sizing_mode='scale_width',
