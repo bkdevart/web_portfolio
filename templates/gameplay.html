@@ -21,19 +21,17 @@
       Choose a game from the dropdown below.
     </p>
     <form action="/gameplay/">
-    <select name="title_select" onchange="this.form.submit()">
-
-    	{% for title in titles %}
-        <div>
-    		{% if title == current_title %}
-    			<option selected value="{{ title }}">{{ title }} &#9660; </option>
-    		{% else %}
-    			<option value="{{ title }}">{{ title }}</option>
-    		{% endif %}
-        </div>
-    	{% endfor %}
-    </select>
-
+      <select name="title_select" onchange="this.form.submit()">
+        {% for title in titles %}
+          <div>
+          {% if title == current_title %}
+            <option selected value="{{ title }}">{{ title }} &#9660; </option>
+          {% else %}
+            <option value="{{ title }}">{{ title }}</option>
+          {% endif %}
+          </div>
+        {% endfor %}
+      </select>
     </form>
     <div class="grid">
     {% for plot in dynamic %}

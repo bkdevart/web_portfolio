@@ -160,7 +160,7 @@ form {
 
 select {
 	-webkit-appearance: none;
-  position: relative;
+  	position: relative;
 	background-color: #acd1e0;
 	color: #8e8d7d;
 	font-size: 1.25em;

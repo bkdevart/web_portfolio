@@ -49,7 +49,7 @@ def gameplay():
     dynamic = []
 
     # init source data
-    source, game_attr, game_log, game_attr_demo = init_data()
+    source, game_attr, game_log, game_attr_demo = init_game_data()
     source_sample = source.head(3).to_html(index=False)
     titles = (source[['title']]
               .drop_duplicates()
@@ -64,6 +64,7 @@ def gameplay():
     plots.append((content, components(plot)))
 
     # add weekly hours distribution pie graph
+    # TODO: if less than 3 games are played, RdBu palette fails
     plot, content = weekly_hours_snapshot(source, game_attr)
     plots.append((content, components(plot)))
 
@@ -112,7 +113,7 @@ def gameplay():
                            dynamic=dynamic)
 
 
-def init_data():
+def init_game_data():
     '''
     Initializes data, returning two dataframes - source and complete
     '''
@@ -184,6 +185,10 @@ def game_of_the_week(source_data, num_weeks=16):
                                       + weekly_top_games['title'])
     weekly_top_games = weekly_top_games.sort_values(['week_start'],
                                                     ascending=False)
+     # add ranking field based on hours
+    weekly_top_games['rank'] = (weekly_top_games['hours_played']
+                                .rank(ascending=False))
+    week_rank = int(weekly_top_games.head(1)['rank'].values)
     graph = weekly_top_games[['date_title',
                               'hours_played']].head(num_weeks)
     # plot graph df with bokeh
@@ -211,7 +216,10 @@ def game_of_the_week(source_data, num_weeks=16):
     most_recent_week = weekly_top_games['week_start'].dt.date.iloc[0]
     most_recent_week = most_recent_week.strftime('%m-%d-%Y')
     curr_top_game = weekly_top_games['title'].iloc[0]
-    top_game = f'Top game for week of {most_recent_week}: <em>{curr_top_game}</em>'
+    top_game = (f'Top game for week of {most_recent_week}: '
+                f'<em>{curr_top_game}</em>. ')
+    top_game = (top_game + f'This ranks <em>{str(week_rank)}</em>'
+                '  compared to prior weeks.')
     top_game = '<h3>Game of the Week</h3>' + top_game
     return plot, top_game
 
@@ -1039,7 +1047,133 @@ def single_game_streaks(source, game_title):
 
 @app.route('/music/')
 def music():
-    return render_template('music.html')
+    # init dashboard element list, data
+    plots = []
+    df, df_apple, file_path = init_music_data()
+
+    # test for first graph
+    plot, content = graph_never_listened(10, df_apple)
+    plots.append((content, components(plot)))
+    return render_template('music.html', plots=plots)
+
+
+def init_music_data():
+    '''
+    Initializes data frames, importing itunes' playlist csv export, and then
+    returning data for processing.
+
+    Returns
+    -------
+    df_all : data frame
+        Entire contents of csv file
+    df_apple_music : data frame
+        Subset of df_all, containing only songs in Apple's AAC format
+    data_path : string
+        The folder path to the itunes csv file
+    '''
+    # read in and format data
+    THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
+    data_path = os.path.join(THIS_FOLDER, 'input/music.csv')
+    df_all = pd.read_csv(data_path,
+                         parse_dates=['Date Modified', 'Date Added',
+                                      'Last Played', 'Last Skipped'])
+    # dfRaw = pd.read_csv(data_path + 'test data/Music.csv')
+    focus_fields = ['Artist', 'Name', 'Album', 'Genre', 'Plays',
+                    'Date Added', 'Last Played', 'Year']
+    # dateFields = ['Date Modified','Date Added','Last Played','Last Skipped']
+    # df_all.sort_values(by='Date Added', ascending=False, inplace=True)
+    # this fixes the formats that auto parse failed on
+    # might be a sign there's an issue importing
+    df_all['Date Modified'] = pd.to_datetime(df_all['Date Modified'],
+                                             format='%m/%d/%y, %I:%M %p',
+                                             errors='coerce')
+    df_all['Date Added'] = pd.to_datetime(df_all['Date Added'],
+                                          format='%m/%d/%y, %I:%M %p',
+                                          errors='coerce')
+    df_all['Year'] = pd.to_numeric(df_all['Year'], errors='coerce')
+
+    # create some subsets of data
+    # look at genres of music
+    # may want to filter out manual tags by file format
+    df_apple_music = pd.DataFrame(df_all[(df_all['Kind'] ==
+                                          'Apple Music AAC audio file')])
+    df_apple_music.sort_values(by=['Plays'], inplace=True, ascending=False)
+    df_apple_music = df_apple_music[focus_fields]
+
+    df_apple_music_genre_play_counts = (df_apple_music.groupby(['Genre'])
+                                        [['Genre', 'Plays']].sum())
+    df_apple_music_genre_play_counts.sort_values(by=['Plays'],
+                                                 ascending=False, inplace=True)
+
+    return df_all, df_apple_music, data_path
+
+
+def graph_never_listened(num, df_apple):
+    '''
+    Creates a pie graph  of artists with songs that haven't been listened to.
+    Larger slices represent more songs.
+    '''
+    # TODO: add function
+    df_apple_music_song_play_counts = song_play_counts(df_apple)
+    # TODO: add function
+    songs_never_listened = never_listened(df_apple_music_song_play_counts)
+    song_counts = (songs_never_listened[['Artist', 'Name']]
+                   .groupby('Artist', as_index=False)
+                   .count())
+    song_counts['Rank'] = song_counts['Name'].rank(ascending=False,
+                                                   method='min')
+    song_counts.sort_values('Rank', inplace=True)
+    song_counts = song_counts.head(num)
+    # dfTop = currentTop(numGames)
+    # add bokeh graph
+    # some calculations to orientate the pie wedges
+    song_counts['angle'] = (song_counts['Name']/
+                            song_counts['Name'].sum() * 2*pi)
+    song_counts['color'] = RdBu[len(song_counts['Name'])]
+    source = ColumnDataSource(song_counts)
+    p = figure(plot_height=300,
+               sizing_mode='scale_width',
+               title=f'Need to Listen - Top {num}',
+               toolbar_location=None,
+               # tools='pan, reset',
+               x_range=(-.5, 1.5))
+    p.wedge(x=0, y=1, radius=0.4, line_color='white',
+            start_angle=cumsum('angle', include_zero=True),
+            end_angle=cumsum('angle'), legend='Artist',
+            fill_color='color', source=source)
+    p.axis.visible = False
+    p.title.text_color = '#8e8d7d'
+    # p.legend.text_color = '#8e8d7d'
+    p.legend.label_text_color  = '#8e8d7d'
+    p.grid.grid_line_color = None
+    content = '<p>Test Graph</p>'
+    return p, content
+
+
+def song_play_counts(source_df):
+    '''
+    Gives artist, song name, and total play counts
+    '''
+    return_df = pd.DataFrame(source_df
+                             .groupby(['Artist', 'Name'])
+                             [['Artist', 'Name', 'Plays']]
+                             .sum().reset_index())
+    return_df.sort_values(by=['Plays'], ascending=False,
+                          inplace=True)
+    return_df.name = 'df_apple_music_song_play_counts'
+    return return_df
+
+
+def never_listened(source_df):
+    '''
+    Gives the artist and song name of songs that have nevery been played
+    '''
+    return_df = (pd.DataFrame
+                 (source_df
+                  [(source_df['Plays'] == 0)]))
+    return_df.sort_values(by='Artist', inplace=True)
+    return_df.name = 'songs_never_listened'
+    return return_df
 
 
 @app.route('/exercise/')
