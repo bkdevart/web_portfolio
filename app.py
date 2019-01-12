@@ -305,7 +305,6 @@ def check_streaks(source, top_games=10):
             Date game was played
         days : float64
             Days played in a continuous streak
-
     '''
     df = get_streaks(source)
     # calculate current streak (streaks with yesterday's date)
@@ -470,15 +469,18 @@ def bar_graph_top(source, num_games=10):
         top.  Defaults to 10.
     '''
     # set data
+    
     graph = __current_top(__agg_total_time_played(source), num_games)
-
+    graph['title'] = (graph['rank'].astype(str)
+                      + '. ' + graph['title'])
+    # graph = graph['rank_title', 'hours_played']
     n_groups = graph['title'].count()
     game_rank = graph['hours_played']
     tick_names = graph['title']
 
     # add bokeh instructions, return plot
     source = ColumnDataSource(graph)
-    y_range = list(set(graph['title']))
+    y_range = sorted(set(graph['title']), reverse=True)
     title = 'Rank by Game Time'
 
     p = figure(plot_height=300,
@@ -551,6 +553,7 @@ def __current_top(source_df, rank_num):
             Overall rank by time played
     '''
     top = source_df[source_df['rank'] <= rank_num]
+    top['rank'] = top['rank'].astype(int).apply(lambda x: '{0:0>2}'.format(x))
     return top
 
 
@@ -808,7 +811,7 @@ def need_to_play(source, complete, num_games=5):
     been_a_while['days_since'] = been_a_while['days_since'].astype('timedelta64[D]')
     # add hours, days since last played (iterate through frame)
     # adapt this to string, return
-    playlist = '<em>Consider playing:</em>'
+    playlist = '<h3>Consider Playing</h3>'
     for index, row in been_a_while.iterrows():
         playlist = playlist + ('<li><strong>' + row['title'] +
                     '</strong> (' +
@@ -816,7 +819,6 @@ def need_to_play(source, complete, num_games=5):
                     ' days since, ' +
                     str("{0:.0f}".format(row['hours_played'])) +
                     ' hours in)</li>')
-    playlist = '<h3>Recent and Past</h3>' + playlist
     return playlist
 
 
