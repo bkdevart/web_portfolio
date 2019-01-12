@@ -328,17 +328,25 @@ def check_streaks(source, top_games=10):
                                                            ascending=False)
     # graph data
     # adapt this for bokeh, return plot
-    graph = max_streak[['title', 'days']].head(top_games)
+    max_streak['rank'] = max_streak['days'].rank(method='dense',
+                                                 ascending=False)
+    max_streak['rank'] = (max_streak['rank']
+                          .astype(int)
+                          .apply(lambda x: '{0:0>2}'
+                          .format(x)))
+    max_streak['rank_title'] = (max_streak['rank'].astype(str) +
+                                '. ' + max_streak['title'])
+    graph = max_streak[['rank_title', 'days']].head(top_games)
     # plot graph df with bokeh
     source = ColumnDataSource(graph)
-    y_range = list(set(graph['title']))
+    y_range = sorted(set(graph['rank_title']), reverse=True)
     title = 'Top ' + str(top_games) + ' Streaks'
 
     p = figure(plot_height=300,
                sizing_mode='scale_width',
                y_range=y_range,
                title=title)
-    p.hbar(y='title',
+    p.hbar(y='rank_title',
            source=source,
            right='days',
            height=.5,
@@ -552,7 +560,7 @@ def __current_top(source_df, rank_num):
         rank : float64
             Overall rank by time played
     '''
-    top = source_df[source_df['rank'] <= rank_num]
+    top = pd.DataFrame(source_df[source_df['rank'] <= rank_num])
     top['rank'] = top['rank'].astype(int).apply(lambda x: '{0:0>2}'.format(x))
     return top
 
