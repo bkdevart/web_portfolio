@@ -11,6 +11,18 @@
       Below are some analytics I've created exploring the
       patterns in my musical listening habits.
     </p>
+    <div class="grid">
+      {% for plot in plots %}
+        <div>
+        {{plot[0] | safe}}
+        </div>
+        <div>
+        {% for part in plot[1] %}
+          {{part | safe}}
+        {% endfor %}
+        </div>
+      {% endfor %}
+      </div>
   </article>
 </main>
 {% endblock %}

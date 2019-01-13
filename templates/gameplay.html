@@ -21,19 +21,17 @@
       Choose a game from the dropdown below.
     </p>
     <form action="/gameplay/">
-    <select name="title_select" onchange="this.form.submit()">
-
-    	{% for title in titles %}
-        <div>
-    		{% if title == current_title %}
-    			<option selected value="{{ title }}">{{ title }} &#9660; </option>
-    		{% else %}
-    			<option value="{{ title }}">{{ title }}</option>
-    		{% endif %}
-        </div>
-    	{% endfor %}
-    </select>
-
+      <select name="title_select" onchange="this.form.submit()">
+        {% for title in titles %}
+          <div>
+          {% if title == current_title %}
+            <option selected value="{{ title }}">{{ title }} &#9660; </option>
+          {% else %}
+            <option value="{{ title }}">{{ title }}</option>
+          {% endif %}
+          </div>
+        {% endfor %}
+      </select>
     </form>
     <div class="grid">
     {% for plot in dynamic %}
@@ -72,20 +70,20 @@
     <p>
       The data used to create this dashboard consists of two tables:
       one is a log of time spent by day on each game, and the other
-      is a record of which games have been completed.  Both are CSV
+      is a record of game metadata.  Both are CSV
       files.
     </p>
     <h2 id="game-log-overview">game_log.csv</h2>
     <p>
-      There are four fields to this table: title, time_played,
-      date, and system.
+      There are three fields to this table: title, time_played,
+      and date.
       {{game_log | safe}}
     </p>
-    <h2 id="completed-overview">completed.csv</h2>
+    <h2 id="game-attr-overview">game_attr.csv</h2>
     <p>
-      There are three fields to this table: title, complete,
-      date_completed.
-      {{completed | safe}}
+      There are five fields to this table: title, complete,
+      date_completed, release_date, and system.
+      {{game_attr_demo | safe}}
     </p>
     <h2 id="process-data">Processing the Data</h2>
     <p>
