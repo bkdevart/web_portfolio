@@ -218,8 +218,10 @@ def game_of_the_week(source_data, num_weeks=16):
     curr_top_game = weekly_top_games['title'].iloc[0]
     top_game = (f'Top game for week of {most_recent_week}: '
                 f'<em>{curr_top_game}</em>. ')
+    # add 'out of num total weeks'
+    total_weeks = str(len(weekly_top_games))
     top_game = (top_game + f'This ranks <em>{str(week_rank)}</em>'
-                '  compared to prior weeks.')
+                f'  out of <em>{total_weeks}</em> weeks.')
     top_game = '<h3>Game of the Week</h3>' + top_game
     return plot, top_game
 
@@ -397,6 +399,11 @@ def line_weekly_hours(source):
     '''
     graph = __agg_week(source)[['week_start', 'hours_played',
                                 'avg_hrs_per_day']]
+    # add current weekly hours for content text
+    curr_week = graph['week_start'].max()
+    curr_hrs = (graph[graph['week_start'] == curr_week]
+                ['hours_played'].values[0])
+    curr_hrs = str("{0:.1f}".format(curr_hrs))
     graph = graph.set_index('week_start')
     # add this as bokeh graph, return plot
     title = 'Weekly Hours'
@@ -419,11 +426,13 @@ def line_weekly_hours(source):
     p.axis.major_tick_line_color = '#8e8d7d'
     p.axis.minor_tick_line_color = '#8e8d7d'
     p.title.text_color = '#8e8d7d'
-    # TODO: show min/max of weekly and daily hours, averages
+    # show min/max of weekly and daily hours, averages
     content = '<h3>Overall Hours</h3>'
+    # curr_weekly_hrs = str("{0:.1f}".format(graph.index.max()['hours_played']))
     avg_weekly_hrs = str("{0:.1f}".format(graph['hours_played'].mean()))
     max_weekly_hrs = str("{0:.1f}".format(graph['hours_played'].max()))
     min_weekly_hrs = str("{0:.1f}".format(graph['hours_played'].min()))
+    content = content + f'<li><em>{curr_hrs}</em> hours played this week.</li>'
     content = (content + f'<li>On average, <em>{avg_weekly_hrs}</em> hours are ' +
                         'played per week.</li>')
     content = (content + '<li>The highest week had <em>'
@@ -479,6 +488,16 @@ def bar_graph_top(source, num_games=10):
     # set data
     
     graph = __current_top(__agg_total_time_played(source), num_games)
+    # top game at x hours, followed by 2nd game, hrs, 3rd game, hrs
+    game1 = graph.iloc[[0]]['title'].values[0]
+    game2 = graph.iloc[[1]]['title'].values[0]
+    game3 = graph.iloc[[2]]['title'].values[0]
+    hours1 = str("{0:.1f}".format(graph.iloc[[0]]
+                                  ['hours_played'].values[0]))
+    hours2 = str("{0:.1f}".format(graph.iloc[[1]]
+                                  ['hours_played'].values[0]))
+    hours3 = str("{0:.1f}".format(graph.iloc[[2]]
+                                  ['hours_played'].values[0]))
     graph['title'] = (graph['rank'].astype(str)
                       + '. ' + graph['title'])
     # graph = graph['rank_title', 'hours_played']
@@ -489,7 +508,7 @@ def bar_graph_top(source, num_games=10):
     # add bokeh instructions, return plot
     source = ColumnDataSource(graph)
     y_range = sorted(set(graph['title']), reverse=True)
-    title = 'Rank by Game Time'
+    title = 'Total Time Ranked by Game Title'
 
     p = figure(plot_height=300,
                sizing_mode='scale_width',
@@ -510,7 +529,12 @@ def bar_graph_top(source, num_games=10):
     p.axis.minor_tick_line_color = '#8e8d7d'
     p.title.text_color = '#8e8d7d'
     # TODO: replace this with meaningful content
-    content = '<p></p>'
+    content = '<h3>Top 3 Hours</h3>'
+    # calc titles, hrs for top 3
+    content = (content +
+               f'<li><em>1st</em> is <em>{game1}</em> with <em>{hours1}</em> hours.</li>'
+               f'<li><em>2nd</em> is <em>{game2}</em> with <em>{hours2}</em> hours.</li>'
+               f'<li><em>3rd</em> is <em>{game3}</em> with <em>{hours3}</em> hours.</li>')
     return p, content
 
 
@@ -587,6 +611,17 @@ def pie_graph_top(source, num_games=10):
     # add graph using bokeh, return plot
     graph['angle'] = (graph['hours_played']/
                       graph['hours_played'].sum() * 2*pi)
+    graph['percent'] = (graph['hours_played']/
+                        graph['hours_played'].sum())
+    game1 = graph.iloc[[0]]['title'].values[0]
+    game2 = graph.iloc[[1]]['title'].values[0]
+    game3 = graph.iloc[[2]]['title'].values[0]
+    percent1 = str("{0:.0%}".format(graph.iloc[[0]]
+                                  ['percent'].values[0]))
+    percent2 = str("{0:.0%}".format(graph.iloc[[1]]
+                                  ['percent'].values[0]))
+    percent3 = str("{0:.0%}".format(graph.iloc[[2]]
+                                  ['percent'].values[0]))
     graph['color'] = RdBu[len(graph['hours_played'])]
     source = ColumnDataSource(graph)
     p = figure(plot_height=300,
@@ -608,8 +643,11 @@ def pie_graph_top(source, num_games=10):
     slider = Slider(start=0, end=10, value=1, step=1, title="Stuff")
     widgetbox(slider)
 
-    # TODO: replace this with meaningful content
-    content = '<p></p>'
+    content = '<h3>Top 3 Ratio</h3>'
+    content = (content + 'Of the top 10 most-played games:'
+               f'<li><em>{game1}</em> is <em>{percent1}</em></li>'
+               f'<li><em>{game2}</em> is <em>{percent2}</em></li>'
+               f'<li><em>{game3}</em> is <em>{percent3}</em></li>')
     return p, content
 
 
