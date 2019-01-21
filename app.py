@@ -196,7 +196,7 @@ def game_of_the_week(source_data, num_weeks=16):
     y_range = sorted(set(graph['date_title']))
 
     plot = figure(plot_height=300,
-                  sizing_mode='scale_width',
+                  sizing_mode='stretch_both',
                   y_range=y_range,
                   title=f'Top Games Last {num_weeks} Weeks',
                   toolbar_location='above',
