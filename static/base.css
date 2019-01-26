@@ -167,7 +167,7 @@ select {
 
 /*** RESPONSIVE STYLING ***/
 /*** TABLET STYLING ***/
-@media screen and (min-width: 600px) {
+@media only screen and (min-width: 50em) {
 	/*** Nav Bar ***/
 	.navigation {
 		font-size: 1.5em;
@@ -204,7 +204,7 @@ select {
 }
 
 /*** DESKTOP STYLING ***/
-@media screen and (min-width: 900px) {
+@media only screen and (min-width: 64.063em) {
 	/*** Nav Bar ***/
 	.navigation {
 		font-size: 1.25em;
