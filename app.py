@@ -198,7 +198,7 @@ def game_of_the_week(source_data, num_weeks=16):
     plot = figure(plot_height=300,
                   sizing_mode='scale_width',
                   y_range=y_range,
-                  title=f'Top Games Last {num_weeks} Weeks',
+                  title=f'Weekly Top Games',
                   toolbar_location='above',
                   tools='box_zoom,reset')
     plot.hbar(y='date_title',
@@ -950,7 +950,7 @@ def single_game_history(source, game_title):
     graph = pd.DataFrame(df[['date', 'hours_played']])
     # add bokeh plot and return
     source = ColumnDataSource(graph)
-    title = 'Hours Played by Day for ' + game_title
+    title = game_title + ' Hours/Day'
     top = graph['hours_played']
     # x_range = list(set(graph['date_str']))
 
