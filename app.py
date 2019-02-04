@@ -10,7 +10,7 @@ from bokeh.plotting import figure, output_file, show
 from bokeh.models import ColumnDataSource, CustomJS, Slider
 from bokeh.models.tools import HoverTool
 from bokeh.embed import components
-from bokeh.palettes import RdBu, Category20
+from bokeh.palettes import RdBu, Category20, cividis
 from bokeh.transform import cumsum
 from bokeh.io import output_file, show
 from bokeh.layouts import widgetbox, column
@@ -123,7 +123,8 @@ def init_game_data():
     source = pd.read_csv(game_log,
                          parse_dates=['date', 'time_played'])
     game_attr = pd.read_csv(game_attr,
-                           parse_dates=['date_completed'])
+                           parse_dates=['date_completed',
+                                        'release_date'])
     # storing initial csv states for how-to section
     game_log = source.head(3).to_html(index=False)
     game_attr_demo = game_attr.head(3).to_html(index=False)
@@ -141,7 +142,6 @@ def init_game_data():
     source['week_start'] = (source['date'] - pd.to_timedelta
                             (source['date'].dt.dayofweek, unit='d'))
     source['month'] = source['date'].values.astype('datetime64[M]')
-
     return source, game_attr, game_log, game_attr_demo
 
 
@@ -239,7 +239,11 @@ def weekly_hours_snapshot(source, complete):
     # some calculations to orientate the pie wedges
     df['angle'] = (df['hours_played']/
                    df['hours_played'].sum() * 2*pi)
-    df['color'] = RdBu[len(df['hours_played'])]
+    # condition here to change palette if less than 3 or greater than 11
+    if len(df['hours_played']) >= 3 and len(df['hours_played']) <= 11:
+        df['color'] = RdBu[len(df['hours_played'])]
+    else:
+        df['color'] = cividis(len(df['hours_played']))
     source = ColumnDataSource(df)
     p = figure(plot_height=300,
                sizing_mode='scale_width',
