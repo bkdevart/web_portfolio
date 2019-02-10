@@ -47,6 +47,7 @@ def gameplay():
     # init dashboard element lists
     plots = []
     dynamic = []
+    complete = []
 
     # init source data
     source, game_attr, game_log, game_attr_demo = init_game_data()
@@ -56,7 +57,7 @@ def gameplay():
               .sort_values('title'))
     titles = titles['title'].tolist()
     current_title = request.args.get("title_select")
-    if current_title == None:
+    if current_title is None:
         current_title = '1-2-Switch'
 
     # add weekly hours for most played game plot
@@ -104,13 +105,18 @@ def gameplay():
     else:
         dynamic.append((content, components(plot)))
 
+    # completion views
+    plot, content = completion_dates(game_attr)
+    complete.append((content, components(plot)))
+
     return render_template('gameplay.html', plots=plots,
                            game_log=game_log,
                            game_attr_demo=game_attr_demo,
                            source_sample=source_sample,
                            titles=titles,
                            current_title=current_title,
-                           dynamic=dynamic)
+                           dynamic=dynamic,
+                           complete=complete)
 
 
 def init_game_data():
@@ -185,7 +191,7 @@ def game_of_the_week(source_data, num_weeks=16):
                                       + weekly_top_games['title'])
     weekly_top_games = weekly_top_games.sort_values(['week_start'],
                                                     ascending=False)
-     # add ranking field based on hours
+    # add ranking field based on hours
     weekly_top_games['rank'] = (weekly_top_games['hours_played']
                                 .rank(ascending=False))
     week_rank = int(weekly_top_games.head(1)['rank'].values)
@@ -198,7 +204,7 @@ def game_of_the_week(source_data, num_weeks=16):
     plot = figure(plot_height=300,
                   sizing_mode='scale_width',
                   y_range=y_range,
-                  title=f'Weekly Top Games',
+                  title='Weekly Top Games',
                   toolbar_location='above',
                   tools='box_zoom,reset')
     plot.hbar(y='date_title',
@@ -1096,6 +1102,42 @@ def single_game_streaks(source, game_title):
         p = ['','']
     streak_output = '<h3>Streaks</h3>' + streak_output
     return p, streak_output
+
+
+def completion_dates(df):
+    # calculate 5 most recently completed games
+    df = df.sort_values('date_completed', ascending=False)
+    recent = df.head(5)[['title', 'date_completed']]
+    content = 'Recently completed:<br>' + recent.to_html(index=False)
+    df = df[df['date_completed'].notnull()]
+    # focus on the last 10 years
+    first_year = df['date_completed'].max() - pd.DateOffset(years=10)
+    df = df[df['date_completed'].dt.year >= first_year.year]
+    df['value'] = 1
+    graph = pd.DataFrame(df[['date_completed', 'value']])
+    # add bokeh plot and return
+    source = ColumnDataSource(graph)
+    title = 'Completion Dates (Last 10 Years)'
+
+    p = figure(plot_height=300,
+               sizing_mode='scale_width',
+               x_axis_type='datetime',
+               title=title,
+               toolbar_location='above',
+               tools='box_zoom,reset')
+    p.vbar(x='date_completed',
+           source=source,
+           width=2,
+           top='value',
+           line_color='#8e8d7d',
+           fill_color='#8e8d7d')
+    p.axis.major_label_text_color = '#8e8d7d'
+    p.axis.axis_line_color = '#8e8d7d'
+    p.axis.major_tick_line_color = '#8e8d7d'
+    p.axis.minor_tick_line_color = '#8e8d7d'
+    p.title.text_color = '#8e8d7d'
+    p.toolbar.logo = None
+    return p, content
 
 @app.route('/music/')
 def music():

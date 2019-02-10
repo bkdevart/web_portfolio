@@ -63,6 +63,23 @@
     {% endfor %}
     </div>
     <!-- end graphs -->
+    <!-- ==== START DASHBOARD ====-->
+    <h2>Game Completion Views</h2>
+    <div class="grid">
+    {% for plot in complete %}
+      <!-- content part -->
+      <div class="summary">
+      {{plot[0] | safe}}
+      </div>
+      <!-- graph part -->
+      <div class="chart">
+      {% for part in plot[1] %}
+        {{part | safe }}
+      {% endfor %}
+      </div>
+    {% endfor %}
+    </div>
+    <!-- end graphs -->
   </article>
   <!-- ==== START HOW-TO CONTENT ==== -->
   <article class="how-to">

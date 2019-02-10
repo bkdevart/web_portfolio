@@ -46,3 +46,6 @@ app.pyc
 # Files used to test #
 ######################
 data_test.py
+
+# Programming environment #
+gameplay_analysis.code-workspace
