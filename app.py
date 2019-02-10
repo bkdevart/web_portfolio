@@ -106,8 +106,12 @@ def gameplay():
         dynamic.append((content, components(plot)))
 
     # completion views
+    # simple graph showing dates a game was completed
     plot, content = completion_dates(game_attr)
     complete.append((content, components(plot)))
+
+    # datframe list of all games completed, reverse chronilogical
+    games_completed = complete_list(game_attr)
 
     return render_template('gameplay.html', plots=plots,
                            game_log=game_log,
@@ -116,7 +120,8 @@ def gameplay():
                            titles=titles,
                            current_title=current_title,
                            dynamic=dynamic,
-                           complete=complete)
+                           complete=complete,
+                           games_completed=games_completed)
 
 
 def init_game_data():
@@ -1138,6 +1143,13 @@ def completion_dates(df):
     p.title.text_color = '#8e8d7d'
     p.toolbar.logo = None
     return p, content
+
+
+def complete_list(df):
+    df = df.sort_values('date_completed', ascending=False)
+    df = df[df['date_completed'].notnull()][['title', 'date_completed']]
+    return df.to_html(index=False)
+
 
 @app.route('/music/')
 def music():
