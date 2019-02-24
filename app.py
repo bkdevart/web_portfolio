@@ -968,7 +968,7 @@ def single_game_history(source, game_title):
     title = game_title + ' Hours/Day'
     top = graph['hours_played']
     # x_range = list(set(graph['date_str']))
-
+    # TODO: add decsription field as tooltip
     p = figure(plot_height=200,
                sizing_mode='scale_width',
                x_axis_type='datetime',
