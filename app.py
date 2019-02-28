@@ -110,7 +110,10 @@ def gameplay():
     plot, content = completion_dates(game_attr)
     complete.append((content, components(plot)))
 
-    # datframe list of all games completed, reverse chronilogical
+    # display weekly game log
+    week_log = weekly_log(source)
+
+    # dataframe list of all games completed, reverse chronilogical
     games_completed = complete_list(game_attr)
 
     return render_template('gameplay.html', plots=plots,
@@ -121,6 +124,7 @@ def gameplay():
                            current_title=current_title,
                            dynamic=dynamic,
                            complete=complete,
+                           week_log=week_log,
                            games_completed=games_completed)
 
 
@@ -978,7 +982,7 @@ def single_game_history(source, game_title):
     graph = pd.DataFrame(df[['date', 'hours_played', 'description']])
     # add bokeh plot and return
     source = ColumnDataSource(graph)
-    print(source.data)
+    # print(source.data)
     title = game_title + ' Hours/Day'
     # top = graph['hours_played']
     # x_range = list(set(graph['date_str']))
@@ -1014,7 +1018,7 @@ def single_game_history(source, game_title):
     p.axis.minor_tick_line_color = '#8e8d7d'
     p.title.text_color = '#8e8d7d'
     p.toolbar.logo = None
-    show(p)
+    # show(p)
     return playtime, p
 
 
@@ -1178,6 +1182,14 @@ def complete_list(df):
     df = df[df['date_completed'].notnull()][['title', 'date_completed']]
     return df.to_html(index=False)
 
+
+def weekly_log(df):
+    current_week = df['week_start'].max()
+    df = df[df['week_start'] == current_week].sort_values('date')
+    df = df[['date', 'title', 'hours_played', 'description']]
+    df['hours_played'] = df['hours_played'].round(2)
+    content = df.to_html(index=False)
+    return content
 
 @app.route('/music/')
 def music():
