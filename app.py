@@ -106,8 +106,15 @@ def gameplay():
         dynamic.append((content, components(plot)))
 
     # completion views
+    # simple graph showing dates a game was completed
     plot, content = completion_dates(game_attr)
     complete.append((content, components(plot)))
+
+    # display weekly game log
+    week_log = weekly_log(source)
+
+    # dataframe list of all games completed, reverse chronilogical
+    games_completed = complete_list(game_attr)
 
     return render_template('gameplay.html', plots=plots,
                            game_log=game_log,
@@ -116,7 +123,9 @@ def gameplay():
                            titles=titles,
                            current_title=current_title,
                            dynamic=dynamic,
-                           complete=complete)
+                           complete=complete,
+                           week_log=week_log,
+                           games_completed=games_completed)
 
 
 def init_game_data():
@@ -927,6 +936,19 @@ def game_completed(completed, game_title):
     return complete_status
 
 
+def create_hover_tool():
+    """Generates the HTML for the Bokeh's hover data tool on the graph."""
+    hover_html = """
+      <div>
+        <span class="hover-tooltip">$x</span>
+      </div>
+      <div>
+        <span class="hover-tooltip">desc @description</span>
+      </div>
+    """
+    return HoverTool(tooltips=hover_html)
+
+
 def single_game_history(source, game_title):
     df = source[source['title'] == game_title]
     # add total hours spent playing game
@@ -954,34 +976,49 @@ def single_game_history(source, game_title):
     df = pd.merge(df, date_range, how='right',
                   on='date').sort_values('date').reset_index()
     # get positions of start of each month, name/year of month
-    locs = df[df['date'].dt.day == 1].index
+    # locs = df[df['date'].dt.day == 1].index
     # remove time from datetime
     # labels = (df[df['date'].dt.day == 1]['date'].values)
-    graph = pd.DataFrame(df[['date', 'hours_played']])
+    graph = pd.DataFrame(df[['date', 'hours_played', 'description']])
     # add bokeh plot and return
     source = ColumnDataSource(graph)
+    # print(source.data)
     title = game_title + ' Hours/Day'
-    top = graph['hours_played']
+    # top = graph['hours_played']
     # x_range = list(set(graph['date_str']))
+    # TODO: add decsription field as tooltip
+    # TOOLTIPS = [("summary", "@description")]
 
+    # tools = []
+    # hover_tool = create_hover_tool()
+    # if hover_tool:
+    tools = ['box_zoom,reset']
+    tooltips = [('desc', '@description')]
     p = figure(plot_height=200,
                sizing_mode='scale_width',
                x_axis_type='datetime',
                title=title,
                toolbar_location='above',
-               tools='box_zoom,reset')
+               tools=tools,
+               tooltips=tooltips)
+
+    # hover = p.select_one(HoverTool)
+    # hover.point_policy = "follow_mouse"
+
     p.vbar(x='date',
            source=source,
            width=2,
            top='hours_played',
            line_color='#8e8d7d',
            fill_color='#8e8d7d')
+
     p.axis.major_label_text_color = '#8e8d7d'
     p.axis.axis_line_color = '#8e8d7d'
     p.axis.major_tick_line_color = '#8e8d7d'
     p.axis.minor_tick_line_color = '#8e8d7d'
     p.title.text_color = '#8e8d7d'
     p.toolbar.logo = None
+    # show(p)
     return playtime, p
 
 
@@ -1138,6 +1175,21 @@ def completion_dates(df):
     p.title.text_color = '#8e8d7d'
     p.toolbar.logo = None
     return p, content
+
+
+def complete_list(df):
+    df = df.sort_values('date_completed', ascending=False)
+    df = df[df['date_completed'].notnull()][['title', 'date_completed']]
+    return df.to_html(index=False)
+
+
+def weekly_log(df):
+    current_week = df['week_start'].max()
+    df = df[df['week_start'] == current_week].sort_values('date')
+    df = df[['date', 'title', 'hours_played', 'description']]
+    df['hours_played'] = df['hours_played'].round(2)
+    content = df.to_html(index=False)
+    return content
 
 @app.route('/music/')
 def music():
