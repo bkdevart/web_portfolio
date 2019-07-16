@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% set active_page = "gameplay" %}
+{% block title %}Games{% endblock %}
+
+<!-- ==== START MAIN CONTENT ====-->
+{% block main %}
+<main role="main">
+  <article class="gameplay">
+    <h1 id="portfolio-goal">Gameplay Analysis Dashboard</h1>
+    <p>
+      Below are analytics I've created exploring the
+      patterns in my time playing videogames.  For information
+      on how these were created, check out the
+      <a href="#code-overview">how-to</a> section.
+      Source code can be viewed at
+      <a href="https://github.com/bkdevart/web_portfolio">GitHub</a>.
+    </p>
+    <!-- ==== START SINGLE GAME VIEW ==== -->
+    <h2>Single Game Views</h2>
+    <p>
+      Choose a game from the dropdown below.
+    </p>
+    <form action="/gameplay/">
+      <select name="title_select" onchange="this.form.submit()">
+        {% for title in titles %}
+          <div>
+          {% if title == current_title %}
+            <option selected value="{{ title }}">{{ title }} &#9660; </option>
+          {% else %}
+            <option value="{{ title }}">{{ title }}</option>
+          {% endif %}
+          </div>
+        {% endfor %}
+      </select>
+    </form>
+    <div class="grid">
+    {% for plot in dynamic %}
+      <div>
+      {{plot[0] | safe}}
+      </div>
+      <div>
+      {% for part in plot[1] %}
+        {{part | safe}}
+      {% endfor %}
+      </div>
+    {% endfor %}
+    </div>
+    <!-- end single game view -->
+    <!-- ==== START DASHBOARD ====-->
+    <h2>All Games Views</h2>
+    <div class="grid">
+    {% for plot in plots %}
+      <!-- content part -->
+      <div class="summary">
+      {{plot[0] | safe}}
+      </div>
+      <!-- graph part -->
+      <div class="chart">
+      {% for part in plot[1] %}
+        {{part | safe }}
+      {% endfor %}
+      </div>
+    {% endfor %}
+    </div>
+    <!-- end graphs -->
+    <!-- ==== START DASHBOARD ====-->
+    <h2>Game Completion Views</h2>
+    <div class="grid">
+    {% for plot in complete %}
+      <!-- content part -->
+      <div class="summary">
+      {{plot[0] | safe}}
+      </div>
+      <!-- graph part -->
+      <div class="chart">
+      {% for part in plot[1] %}
+        {{part | safe }}
+      {% endfor %}
+      </div>
+    {% endfor %}
+    </div>
+    <!-- end graphs -->
+  </article>
+  <!-- ==== START HOW-TO CONTENT ==== -->
+  <article class="how-to">
+    <h1 id="code-overview">How this Dashboard Works</h1>
+    <p>
+      The data used to create this dashboard consists of two tables:
+      one is a log of time spent by day on each game, and the other
+      is a record of game metadata.  Both are CSV
+      files.
+    </p>
+    <h2 id="game-log-overview">game_log.csv</h2>
+    <p>
+      There are three fields to this table: title, time_played,
+      and date.
+      {{game_log | safe}}
+    </p>
+    <h2 id="game-attr-overview">game_attr.csv</h2>
+    <p>
+      There are five fields to this table: title, complete,
+      date_completed, release_date, and system.
+      {{game_attr_demo | safe}}
+    </p>
+    <h2 id="process-data">Processing the Data</h2>
+    <p>
+      These tables are imported using the Python library
+      <a href="https://pandas.pydata.org"><cite>pandas</cite></a>,
+      which will also be used to perform calculations on the data.
+      Fields are created that will be used frequently for
+      analysis, such as day of week, cumulative time spent, and
+      the start date of each week.
+      {{source_sample | safe}}
+    </p>
+  </article>
+  <!-- end how-to content -->
+</main>
+{% endblock %}
+<!-- end main content -->
